@@ -11,6 +11,7 @@ import {
   Result,
   ButtonContainer,
   FollowUpButton,
+  SpeakerButton,
 } from './StyledComponents'
 
 export default function Home() {
@@ -23,7 +24,11 @@ export default function Home() {
 
   const [isSoundOn, setIsSoundOn] = useState(true)
 
-  const handleOpenAI = async (message: string) => {
+  const handleOpenAI = async (message: string, includeHistory: boolean) => {
+    console.log('Sending message to OpenAI:', message)
+    console.log('Include history:', includeHistory)
+    console.log('Current conversation history:', conversationHistory)
+
     try {
       const response = await fetch('http://127.0.0.1:8000/api/openai', {
         method: 'POST',
@@ -32,7 +37,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           message: message,
-          conversation_history: inputText === '' ? conversationHistory : [],
+          conversation_history: includeHistory ? conversationHistory : [],
           generate_audio: isSoundOn,
         }),
       })
@@ -62,6 +67,13 @@ export default function Home() {
 
       setResult(textResponse.answer || '')
       setOptions(textResponse.options || [])
+
+      // Update conversation history
+      setConversationHistory((prevHistory) => [
+        ...prevHistory,
+        { role: 'user', content: message },
+        { role: 'assistant', content: textResponse.answer || '' },
+      ])
     } catch (error) {
       console.error('Error:', error)
       setResult('Error: Something went wrong')
@@ -71,31 +83,38 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    handleOpenAI(inputText)
+    console.log('Form submitted with input:', inputText)
+    handleOpenAI(inputText, false) // Do not include history on submit
   }
 
   const handleFollowUpClick = (question: string) => {
-    handleOpenAI(question)
+    console.log('Follow-up question clicked:', question)
+    handleOpenAI(question, true) // Include history on follow-up click
   }
+
   const toggleSound = () => {
     setIsSoundOn(!isSoundOn)
+    console.log('Sound toggled. Is sound on:', !isSoundOn)
   }
 
   return (
     <MainContainer>
       <InputContainer>
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: 'flex', width: '100%' }}
+        >
           <CenteredInput
             type="text"
             placeholder="Enter text here..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
           />
+          <SpeakerButton type="button" onClick={toggleSound}>
+            <FontAwesomeIcon icon={isSoundOn ? faVolumeUp : faVolumeOff} />
+          </SpeakerButton>
           <button type="submit" style={{ display: 'none' }} />
         </form>
-        <button onClick={toggleSound}>
-          <FontAwesomeIcon icon={isSoundOn ? faVolumeUp : faVolumeOff} />
-        </button>
       </InputContainer>
       {result && <Result>{result}</Result>}
       {options.length > 0 && (
