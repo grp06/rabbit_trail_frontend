@@ -181,11 +181,13 @@ const neumorphic = css<{ theme: Theme; size?: 'sm' | 'md' | 'lg' | 'xl' }>`
 
 const neumorphicInset = css<{ theme: Theme; size?: 'sm' | 'md' | 'lg' }>`
   ${insetGradient}
-  box-shadow: ${(props) =>
-    props.theme.shadows[
-      `inset${props.size?.charAt(0).toUpperCase()}${props.size?.slice(1)}` ||
-        'insetMd'
-    ]};
+  box-shadow: ${(props) => {
+    const size = props.size || 'md'
+    const shadowKey = `inset${size.charAt(0).toUpperCase()}${size.slice(
+      1
+    )}` as keyof typeof props.theme.shadows
+    return props.theme.shadows[shadowKey] || props.theme.shadows.insetMd
+  }};
 `
 
 const smoothScrollbar = css<{ theme: Theme }>`
@@ -306,7 +308,8 @@ export const CenteredInput = styled.input<{ theme: Theme }>`
   outline: none;
   transition: ${(props) => props.theme.transitions.smooth};
   color: ${(props) => props.theme.colors.textPrimary};
-  ${neumorphicInset}
+  ${insetGradient}
+  box-shadow: ${(props) => props.theme.shadows.insetMd};
 
   &::placeholder {
     color: ${(props) => props.theme.colors.textMuted};
@@ -314,7 +317,7 @@ export const CenteredInput = styled.input<{ theme: Theme }>`
   }
 
   &:focus {
-    ${neumorphicInset}
+    ${insetGradient}
     box-shadow: ${(props) => props.theme.shadows.insetLg},
       0 0 0 2px ${(props) => props.theme.colors.accentGlow};
     transform: scale(1.01);
@@ -682,7 +685,11 @@ export const SliderLabel = styled.div<{ $isActive: boolean; theme: Theme }>`
   ${(props) =>
     props.$isActive &&
     css`
-      ${insetGradient}
+      background: linear-gradient(
+        145deg,
+        ${props.theme.colors.surfaceInset},
+        ${props.theme.colors.background}
+      );
       box-shadow: ${props.theme.shadows.insetSm};
       text-shadow: 0 0 6px ${props.theme.colors.accentGlow};
     `}
@@ -777,11 +784,19 @@ export const NavigationLink = styled(BaseButton)<{
   ${(props) =>
     props.$isActive
       ? css`
-          ${insetGradient}
+          background: linear-gradient(
+            145deg,
+            ${props.theme.colors.surfaceInset},
+            ${props.theme.colors.background}
+          );
           box-shadow: ${props.theme.shadows.insetMd};
         `
       : css`
-          ${surfaceGradient}
+          background: linear-gradient(
+            145deg,
+            ${props.theme.colors.surfaceRaised},
+            ${props.theme.colors.background}
+          );
           box-shadow: ${props.theme.shadows.sm}, ${props.theme.shadows.insetSm};
         `}
 
@@ -807,7 +822,11 @@ export const LoadingIndicator = styled.div<{ theme: Theme }>`
   padding: ${(props) => props.theme.spacing.sm}
     ${(props) => props.theme.spacing.md};
   border-radius: ${(props) => props.theme.radii.md};
-  ${insetGradient}
+  background: linear-gradient(
+    145deg,
+    ${(props) => props.theme.colors.surfaceInset},
+    ${(props) => props.theme.colors.background}
+  );
   box-shadow: ${(props) => props.theme.shadows.insetSm};
   animation: ${fadeIn} ${durations.fast} ${easings.easeOut};
 
