@@ -3,10 +3,9 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
   description:
-    'Dive into fascinating rabbit holes with intelligent follow-up questions. Shallow Research helps you explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
+    'Dive into fascinating rabbit holes with smart follow-up questions. Shallow Research helps you explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
   keywords: [
     'AI research',
-    'intelligent search',
     'discovery',
     'learning',
     'exploration',
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
     siteName: 'Shallow Research',
     title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
     description:
-      'Dive into fascinating rabbit holes with intelligent follow-up questions. Explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
+      'Dive into fascinating rabbit holes with smart follow-up questions. Explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
     images: [
       {
         url: 'https://shallowresearch.vercel.app/mag-glass.png',
@@ -44,7 +43,7 @@ export const metadata: Metadata = {
     creator: '@shallowresearch', // Update this to your Twitter handle
     title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
     description:
-      'Dive into fascinating rabbit holes with intelligent follow-up questions. Perfect for curious minds who love exploring tangents.',
+      'Dive into fascinating rabbit holes with smart follow-up questions. Perfect for curious minds who love exploring tangents.',
     images: ['https://shallowresearch.vercel.app/mag-glass.png'],
   },
 

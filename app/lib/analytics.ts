@@ -1,9 +1,35 @@
 // Google Analytics event tracking utilities
 
+// Check if we're in a local development environment
+const isLocalDevelopment = () => {
+  if (typeof window === 'undefined') return false
+
+  // Check if running in development mode
+  const isDev = process.env.NODE_ENV === 'development'
+
+  // Check if hostname indicates local development
+  const isLocalHost =
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.includes('.local')
+
+  return isDev || isLocalHost
+}
+
 export const trackEvent = (
   eventName: string,
   parameters?: Record<string, any>
 ) => {
+  // Skip analytics in local development
+  if (isLocalDevelopment()) {
+    console.debug(
+      '[Analytics] Skipped in local development:',
+      eventName,
+      parameters
+    )
+    return
+  }
+
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('event', eventName, {
       ...parameters,
