@@ -27,6 +27,7 @@ export interface AppState {
   isStreaming: boolean
   streamBuffer: string
   displayedText: string
+  isTypewriterDone: boolean
 }
 
 // Action types
@@ -50,6 +51,7 @@ export type AppAction =
   | { type: 'UPDATE_STREAM_BUFFER'; payload: string }
   | { type: 'UPDATE_DISPLAYED_TEXT'; payload: string }
   | { type: 'RESET_STREAMING' }
+  | { type: 'SET_TYPEWRITER_DONE'; payload: boolean }
   | {
       type: 'ADD_CONVERSATION_HISTORY'
       payload: { role: string; content: string }[]
@@ -136,6 +138,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         isStreaming: false,
         streamBuffer: '',
         displayedText: '',
+        isTypewriterDone: false,
       }
     case 'ADD_CONVERSATION_HISTORY':
       const { conversationHistory } = state
@@ -179,6 +182,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         streamBuffer: '',
         displayedText: '',
       }
+    case 'SET_TYPEWRITER_DONE':
+      return { ...state, isTypewriterDone: payload as boolean }
     default:
       return state
   }
@@ -204,4 +209,5 @@ export const initialState: AppState = {
   isStreaming: false,
   streamBuffer: '',
   displayedText: '',
+  isTypewriterDone: false,
 }

@@ -19,6 +19,8 @@ import {
   type HistoryItem,
 } from './state'
 import { useApi } from './lib/useApi'
+import { ConcisenessSlider } from './components/ConcisenessSlider'
+import { useTypewriter } from './lib/useTypewriter'
 
 import {
   AppContainer,
@@ -91,7 +93,6 @@ export default function Home() {
     historyEntries,
     currentQuery,
     conciseness,
-    isDragging,
     isDarkMode,
     isModalVisible,
     showSuggestedQuestions,
@@ -99,6 +100,7 @@ export default function Home() {
     isStreaming,
     streamBuffer,
     displayedText,
+    isTypewriterDone,
   } = state
 
   // Analytics hooks
@@ -125,95 +127,13 @@ export default function Home() {
 
   const { handleOpenAI, handleShuffle } = useApi(state, dispatch)
 
-  // Calculate realistic typing delay based on character and context
-  const getTypingDelay = useCallback(
-    (char: string, previousChar: string = '', index: number = 0) => {
-      const baseDelay = 3 // Very fast base speed
-
-      // Longer pauses after sentence-ending punctuation
-      if (
-        previousChar === '.' ||
-        previousChar === '!' ||
-        previousChar === '?'
-      ) {
-        return baseDelay + Math.random() * 8 + 12 // 15-23ms pause after sentences
-      }
-
-      // Medium pause after commas, semicolons, colons
-      if (
-        previousChar === ',' ||
-        previousChar === ';' ||
-        previousChar === ':'
-      ) {
-        return baseDelay + Math.random() * 4 + 6 // 9-13ms pause
-      }
-
-      // Slight pause after spaces (between words)
-      if (previousChar === ' ') {
-        return baseDelay + Math.random() * 3 + 2 // 5-8ms pause
-      }
-
-      // Occasional micro-hesitations (every 15-25 characters on average)
-      if (Math.random() < 0.05) {
-        // 5% chance
-        return baseDelay + Math.random() * 4 + 3 // 6-10ms micro-pause
-      }
-
-      // Regular character with slight randomization
-      return baseDelay + Math.random() * 2 // 3-5ms normal speed
-    },
-    []
-  )
-
-  // Typewriter animation effect
-  React.useEffect(() => {
-    if (!isStreaming || !streamBuffer) return
-
-    const targetText = streamBuffer
-    const currentLength = displayedText.length
-
-    if (currentLength < targetText.length) {
-      const nextChar = targetText[currentLength]
-      const previousChar =
-        currentLength > 0 ? targetText[currentLength - 1] : ''
-
-      const timer = setTimeout(() => {
-        const newDisplayedText = displayedText + nextChar
-        dispatch({ type: 'UPDATE_DISPLAYED_TEXT', payload: newDisplayedText })
-      }, getTypingDelay(nextChar, previousChar, currentLength))
-
-      return () => clearTimeout(timer)
-    } else if (currentLength === targetText.length && isStreaming) {
-      // When typewriter catches up and we're still streaming, sync the result
-      dispatch({ type: 'SET_RESULT', payload: displayedText })
-    }
-  }, [isStreaming, streamBuffer, displayedText, getTypingDelay])
-
-  // Handle smooth transition when streaming stops
-  React.useEffect(() => {
-    if (
-      !isStreaming &&
-      streamBuffer &&
-      displayedText.length < streamBuffer.length
-    ) {
-      // Streaming stopped but typewriter hasn't caught up - let it finish
-      const nextChar = streamBuffer[displayedText.length]
-      const previousChar =
-        displayedText.length > 0 ? displayedText[displayedText.length - 1] : ''
-
-      const timer = setTimeout(() => {
-        const newDisplayedText = displayedText + nextChar
-        dispatch({ type: 'UPDATE_DISPLAYED_TEXT', payload: newDisplayedText })
-
-        // If we've caught up, set the final result
-        if (newDisplayedText.length === streamBuffer.length) {
-          dispatch({ type: 'SET_RESULT', payload: newDisplayedText })
-        }
-      }, getTypingDelay(nextChar, previousChar, displayedText.length))
-
-      return () => clearTimeout(timer)
-    }
-  }, [isStreaming, streamBuffer, displayedText, getTypingDelay])
+  // Typewriter animation hook
+  useTypewriter({
+    isStreaming,
+    streamBuffer,
+    displayedText,
+    dispatch,
+  })
 
   // Initialize suggested questions on component mount
   React.useEffect(() => {
@@ -249,27 +169,13 @@ export default function Home() {
     [conciseness, trackConcisenesChange]
   )
 
-  // Memoized slider position calculation
-  const sliderPosition = useMemo(() => {
-    switch (conciseness) {
-      case 'short':
-        return 20
-      case 'medium':
-        return 50
-      case 'long':
-        return 80
-      default:
-        return 20
-    }
-  }, [conciseness])
-
   // Memoize the highlight regex to avoid recreating it on every render
   const highlightRegex = useMemo(() => {
     if (explorableConcepts.length === 0) return null
     return new RegExp(`(${explorableConcepts.join('|')})`, 'gi')
   }, [explorableConcepts])
 
-  // Memoize event handlers that depend on handleOpenAI
+  // Memoized event handlers that depend on handleOpenAI
   const handleFollowUpClick = useCallback(
     (question: string, index: number) => {
       trackFollowUpClick(question, index)
@@ -342,66 +248,6 @@ export default function Home() {
     },
     [trackHistoryClick]
   )
-
-  const handleSliderInteraction = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      const { currentTarget, clientX, clientY } = event
-      const { left, top, width, height } = currentTarget.getBoundingClientRect()
-      const isMobile = window.innerWidth <= 768
-
-      if (isMobile) {
-        // Horizontal slider for mobile
-        const x = clientX - left
-        const percentage = (x / width) * 100
-
-        if (percentage <= 35) {
-          dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
-        } else if (percentage <= 65) {
-          dispatch({ type: 'SET_CONCISENESS', payload: 'medium' })
-        } else {
-          dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
-        }
-      } else {
-        // Vertical slider for desktop
-        const y = clientY - top
-        const percentage = (y / height) * 100
-
-        if (percentage <= 35) {
-          dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
-        } else if (percentage <= 65) {
-          dispatch({ type: 'SET_CONCISENESS', payload: 'medium' })
-        } else {
-          dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
-        }
-      }
-    },
-    []
-  )
-
-  const handleMouseDown = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      dispatch({ type: 'SET_DRAGGING', payload: true })
-      handleSliderInteraction(event)
-    },
-    [handleSliderInteraction]
-  )
-
-  const handleMouseMove = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (isDragging) {
-        handleSliderInteraction(event)
-      }
-    },
-    [isDragging, handleSliderInteraction]
-  )
-
-  const handleMouseUp = useCallback(() => {
-    dispatch({ type: 'SET_DRAGGING', payload: false })
-  }, [])
-
-  const handleMouseLeave = useCallback(() => {
-    dispatch({ type: 'SET_DRAGGING', payload: false })
-  }, [])
 
   // Memoize the submit handler
   const handleSubmit = useCallback(
@@ -482,43 +328,10 @@ export default function Home() {
           </NavigationContainer>
         </NavigationHeader>
 
-        <ConcisenessSidebar>
-          <SliderTitle>Detail</SliderTitle>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <SliderLabel
-              $isActive={conciseness === 'short'}
-              onClick={() =>
-                dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
-              }
-            >
-              Short
-            </SliderLabel>
-            <SliderContainer
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-            >
-              <SliderTrack />
-              <SliderThumb $position={sliderPosition} />
-            </SliderContainer>
-            <SliderLabel
-              $isActive={conciseness === 'long'}
-              onClick={() =>
-                dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
-              }
-            >
-              Long
-            </SliderLabel>
-          </div>
-        </ConcisenessSidebar>
+        <ConcisenessSlider
+          conciseness={conciseness}
+          onConcisenessChange={handleConcisenesChange}
+        />
 
         <MobileOverlay
           $isVisible={isSidebarVisible}
@@ -611,7 +424,7 @@ export default function Home() {
             </Result>
           )}
 
-          {options.length > 0 && !isLoading && (
+          {options.length > 0 && !isLoading && isTypewriterDone && (
             <>
               <ButtonContainer>
                 {options.map((option, index) => (

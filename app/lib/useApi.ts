@@ -171,6 +171,9 @@ export function useApi(state: AppState, dispatch: React.Dispatch<AppAction>) {
         )
         dispatch({ type: 'SET_STREAMING', payload: false })
 
+        // Ensure typewriter is marked as done when streaming completes
+        dispatch({ type: 'SET_TYPEWRITER_DONE', payload: true })
+
         const finalResultText = finalResponse?.answer || streamedResult
         if (finalResultText) {
           dispatch({
