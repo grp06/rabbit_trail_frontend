@@ -8,7 +8,7 @@ import {
   faSun,
   faBars,
 } from '@fortawesome/free-solid-svg-icons'
-import { ThemeProvider } from 'styled-components'
+import { ThemeProvider, createGlobalStyle } from 'styled-components'
 import { API_ENDPOINTS } from './config'
 import { analytics } from './lib/analytics'
 
@@ -54,6 +54,17 @@ import {
   lightTheme,
   darkTheme,
 } from './StyledComponents'
+
+// Global styles
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    font-family: var(--font-space-grotesk), 'Comic Sans MS', 'Comic Sans', cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+`
 
 // 64 unusual and intriguing questions from various topics
 const SUGGESTED_QUESTIONS = [
@@ -753,6 +764,7 @@ export default function Home() {
 
   return (
     <ThemeProvider theme={state.isDarkMode ? darkTheme : lightTheme}>
+      <GlobalStyle />
       <AppContainer>
         <NavigationHeader>
           <NavigationContainer>

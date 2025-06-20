@@ -1,9 +1,7 @@
-'use client'
-
 import StyledComponentsRegistry from './lib/registry'
-import { createGlobalStyle } from 'styled-components'
 import { Space_Grotesk } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { metadata as siteMetadata } from './metadata'
 
 const spaceGrotesk = Space_Grotesk({
   weight: ['300', '400', '500', '600', '700'],
@@ -12,15 +10,8 @@ const spaceGrotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
 })
 
-const GlobalStyle = createGlobalStyle`
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1e1e;
-    color: #e0e0e0;
-    font-family: var(--font-space-grotesk), 'Comic Sans MS', 'Comic Sans', cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-`
+// Export metadata for Next.js
+export const metadata = siteMetadata
 
 export default function RootLayout({
   children,
@@ -29,14 +20,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable}`}>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <StyledComponentsRegistry>
-        <GlobalStyle />
-        <body>{children}</body>
-        <GoogleAnalytics gaId="G-VSR6SDJ4J5" />
-      </StyledComponentsRegistry>
+      <head>{/* Additional meta tags if needed */}</head>
+      <body>
+        <StyledComponentsRegistry>
+          {children}
+          <GoogleAnalytics gaId="G-VSR6SDJ4J5" />
+        </StyledComponentsRegistry>
+      </body>
     </html>
   )
 }
