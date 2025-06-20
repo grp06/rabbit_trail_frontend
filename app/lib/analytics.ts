@@ -1,11 +1,5 @@
 // Google Analytics event tracking utilities
 
-declare global {
-  interface Window {
-    gtag: (command: string, ...args: any[]) => void
-  }
-}
-
 export const trackEvent = (
   eventName: string,
   parameters?: Record<string, any>
