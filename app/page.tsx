@@ -49,6 +49,57 @@ import {
   darkTheme,
 } from './StyledComponents'
 
+// 32 diverse suggested questions from various topics
+const SUGGESTED_QUESTIONS = [
+  // History
+  'What caused the fall of the Roman Empire?',
+  'How did the printing press change society?',
+  'What were the main causes of World War I?',
+  'Why did the Maya civilization collapse?',
+
+  // Science & Technology
+  'How do black holes form and what happens inside them?',
+  'What is CRISPR and how is it changing medicine?',
+  'How does quantum computing work?',
+  'What causes the northern lights?',
+
+  // Biology & Medicine
+  'How does the human immune system fight viruses?',
+  'What makes some people live longer than others?',
+  'How do vaccines work at the cellular level?',
+  'Why do we dream and what purpose does it serve?',
+
+  // Psychology & Human Behavior
+  'What causes procrastination and how can it be overcome?',
+  'How does social media affect mental health?',
+  'What makes some people more creative than others?',
+  'Why do humans form superstitions?',
+
+  // Economics & Society
+  'What causes inflation and how does it affect everyday life?',
+  'How do cryptocurrencies actually work?',
+  'What is universal basic income and could it work?',
+  'Why do some countries develop faster than others?',
+
+  // Environment & Climate
+  'How do coral reefs support marine ecosystems?',
+  'What would happen if all the ice caps melted?',
+  'How do trees communicate with each other?',
+  'What causes earthquakes and can we predict them?',
+
+  // Space & Astronomy
+  'How do we know the age of the universe?',
+  'What would happen if Earth lost its magnetic field?',
+  'How do scientists search for extraterrestrial life?',
+  "What is dark matter and why can't we see it?",
+
+  // Philosophy & Ethics
+  'What is consciousness and how does it emerge?',
+  'Is artificial intelligence truly intelligent?',
+  'What makes an action morally right or wrong?',
+  'Can free will exist in a deterministic universe?',
+]
+
 interface HistoryItem {
   queryText: string
   responseText: string
@@ -72,6 +123,8 @@ interface AppState {
   isDragging: boolean
   isDarkMode: boolean
   isModalVisible: boolean
+  showSuggestedQuestions: boolean
+  suggestedQuestions: string[]
 }
 
 // Action types
@@ -89,6 +142,8 @@ type AppAction =
   | { type: 'SET_DRAGGING'; payload: boolean }
   | { type: 'TOGGLE_THEME' }
   | { type: 'SET_MODAL_VISIBLE'; payload: boolean }
+  | { type: 'HIDE_SUGGESTED_QUESTIONS' }
+  | { type: 'SET_SUGGESTED_QUESTIONS'; payload: string[] }
   | {
       type: 'ADD_CONVERSATION_HISTORY'
       payload: { role: string; content: string }[]
@@ -100,11 +155,23 @@ type AppAction =
   | { type: 'LOAD_HISTORY_ENTRY'; payload: HistoryItem }
   | { type: 'RESET_QUERY_STATE' }
 
+// Function to shuffle array and pick random questions
+function getRandomQuestions(questions: string[], count: number = 6): string[] {
+  const shuffled = [...questions].sort(() => 0.5 - Math.random())
+  return shuffled.slice(0, count)
+}
+
 // Reducer function
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_INPUT':
-      return { ...state, inputText: action.payload }
+      return {
+        ...state,
+        inputText: action.payload,
+        // Hide suggested questions when user starts typing
+        showSuggestedQuestions:
+          action.payload.trim() === '' ? state.showSuggestedQuestions : false,
+      }
     case 'SET_RESULT':
       return { ...state, result: action.payload }
     case 'SET_OPTIONS':
@@ -133,6 +200,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isDarkMode: !state.isDarkMode }
     case 'SET_MODAL_VISIBLE':
       return { ...state, isModalVisible: action.payload }
+    case 'HIDE_SUGGESTED_QUESTIONS':
+      return { ...state, showSuggestedQuestions: false }
+    case 'SET_SUGGESTED_QUESTIONS':
+      return { ...state, suggestedQuestions: action.payload }
     case 'ADD_CONVERSATION_HISTORY':
       return {
         ...state,
@@ -175,10 +246,20 @@ const initialState: AppState = {
   isDragging: false,
   isDarkMode: true,
   isModalVisible: false,
+  showSuggestedQuestions: true,
+  suggestedQuestions: getRandomQuestions(SUGGESTED_QUESTIONS),
 }
 
 export default function Home() {
   const [state, dispatch] = useReducer(appReducer, initialState)
+
+  // Initialize suggested questions on component mount
+  React.useEffect(() => {
+    dispatch({
+      type: 'SET_SUGGESTED_QUESTIONS',
+      payload: getRandomQuestions(SUGGESTED_QUESTIONS),
+    })
+  }, [])
 
   // Check if this is the user's first visit
   React.useEffect(() => {
@@ -335,6 +416,9 @@ export default function Home() {
       includeHistory: boolean,
       isFollowUp: boolean = false
     ) => {
+      // Hide suggested questions when starting a search
+      dispatch({ type: 'HIDE_SUGGESTED_QUESTIONS' })
+
       // Track the search query
       analytics.searchQuery(message, state.conciseness)
       const startTime = Date.now()
@@ -421,6 +505,14 @@ export default function Home() {
       handleOpenAI(question, true, true)
     },
     [handleOpenAI]
+  )
+
+  const handleSuggestedQuestionClick = useCallback(
+    (question: string, index: number) => {
+      analytics.searchQuery(question, state.conciseness)
+      handleOpenAI(question, false, false)
+    },
+    [handleOpenAI, state.conciseness]
   )
 
   const handleArticleItemClick = useCallback(
@@ -685,6 +777,26 @@ export default function Home() {
               <button type="submit" style={{ display: 'none' }} />
             </form>
           </InputContainer>
+
+          {/* Suggested Questions - only show when no query/result and not loading */}
+          {state.showSuggestedQuestions &&
+            !state.currentQuery &&
+            !state.result &&
+            !state.isLoading && (
+              <ButtonContainer>
+                {state.suggestedQuestions.map((question, index) => (
+                  <FollowUpButton
+                    key={index}
+                    onClick={() =>
+                      handleSuggestedQuestionClick(question, index)
+                    }
+                    style={{ '--index': index } as React.CSSProperties}
+                  >
+                    {question}
+                  </FollowUpButton>
+                ))}
+              </ButtonContainer>
+            )}
 
           {state.currentQuery && (state.result || state.isLoading) && (
             <CurrentQuery>{state.currentQuery}</CurrentQuery>

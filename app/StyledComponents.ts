@@ -271,6 +271,16 @@ export const Sidebar = styled.aside<{ $isVisible: boolean; theme: Theme }>`
       ${durations.normal} ${easings.easeOut} both;
     animation-delay: calc(var(--index, 0) * 50ms);
   }
+
+  @media (max-width: 768px) {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    height: calc(100vh - 60px);
+    z-index: 1500;
+    width: ${(props) => (props.$isVisible ? '280px' : '0')};
+    margin-top: 0;
+  }
 `
 
 export const MainContainer = styled.main<{ theme: Theme }>`
@@ -284,6 +294,11 @@ export const MainContainer = styled.main<{ theme: Theme }>`
   max-width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 4vh ${(props) => props.theme.spacing.md}
+      ${(props) => props.theme.spacing.md};
+  }
 `
 
 export const InputContainer = styled(BaseCard)<{ theme: Theme }>`
@@ -294,8 +309,13 @@ export const InputContainer = styled(BaseCard)<{ theme: Theme }>`
   margin-bottom: ${(props) => props.theme.spacing.lg};
   padding: 4px;
   ${neumorphic}
-  box-shadow: ${(props) => props.theme.shadows.lg},
-    ${(props) => props.theme.shadows.insetSm};
+  box-shadow: ${(props) => props.theme.shadows.lg}, ${(props) =>
+    props.theme.shadows.insetSm};
+
+  @media (max-width: 768px) {
+    width: 95%;
+    margin-bottom: ${(props) => props.theme.spacing.md};
+  }
 `
 
 export const CenteredInput = styled.input<{ theme: Theme }>`
@@ -370,7 +390,6 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
     ${(props) => props.theme.spacing.lg};
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   position: relative;
-
   box-shadow: ${(props) => props.theme.shadows.lg},
     ${(props) => props.theme.shadows.insetSm};
 
@@ -399,6 +418,13 @@ export const ButtonContainer = styled.div`
   max-width: 800px;
   margin: ${(props) => props.theme.spacing.lg} 0;
   padding: 0;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    width: 95%;
+    gap: ${(props) => props.theme.spacing.sm};
+    margin: ${(props) => props.theme.spacing.md} 0;
+  }
 `
 
 export const FollowUpButton = styled(BaseButton)<{ theme: Theme }>`
@@ -465,9 +491,8 @@ export const ShuffleButton = styled(BaseButton)<{ theme: Theme }>`
   min-width: 140px;
   color: ${(props) => props.theme.colors.textSecondary};
   ${neumorphic}
-
-  box-shadow: ${(props) => props.theme.shadows.sm},
-    ${(props) => props.theme.shadows.insetSm};
+  box-shadow: ${(props) => props.theme.shadows.sm}, ${(props) =>
+    props.theme.shadows.insetSm};
 
   &:hover:not(:disabled) {
     color: ${(props) => props.theme.colors.textPrimary};
