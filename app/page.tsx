@@ -342,19 +342,48 @@ export default function Home() {
 
         <Sidebar $isVisible={isSidebarVisible}>
           {/* History entries */}
-          {historyEntries.map((entry, index) => {
-            const { queryText } = entry
-            return (
-              <HistoryEntry key={index}>
-                <HistoryQuery onClick={() => loadHistoryEntry(entry)}>
-                  {queryText}
-                </HistoryQuery>
-                <RevertButton onClick={() => handleRevert(entry, index)}>
-                  Revert
-                </RevertButton>
-              </HistoryEntry>
-            )
-          })}
+          {historyEntries.length > 0 ? (
+            historyEntries.map((entry, index) => {
+              const { queryText } = entry
+              return (
+                <HistoryEntry key={index}>
+                  <HistoryQuery onClick={() => loadHistoryEntry(entry)}>
+                    {queryText}
+                  </HistoryQuery>
+                  <RevertButton onClick={() => handleRevert(entry, index)}>
+                    Revert
+                  </RevertButton>
+                </HistoryEntry>
+              )
+            })
+          ) : (
+            <div
+              style={{
+                padding: '20px',
+                textAlign: 'center',
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontSize: '14px',
+                lineHeight: '1.5',
+              }}
+            >
+              <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                🔍 Search History
+              </div>
+              <div>
+                Your research trail will appear here as you explore rabbit
+                holes.
+              </div>
+              <div
+                style={{
+                  marginTop: '15px',
+                  fontSize: '13px',
+                  fontStyle: 'italic',
+                }}
+              >
+                Ask a question to get started!
+              </div>
+            </div>
+          )}
         </Sidebar>
 
         <MainContainer>
