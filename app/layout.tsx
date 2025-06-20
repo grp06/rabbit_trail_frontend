@@ -3,6 +3,7 @@
 import StyledComponentsRegistry from './lib/registry'
 import { createGlobalStyle } from 'styled-components'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 
 const inter = Inter({
   weight: ['400', '500', '600'],
@@ -27,6 +28,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.className}>
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-VSR6SDJ4J5"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-VSR6SDJ4J5');
+          `}
+        </Script>
+      </head>
       <StyledComponentsRegistry>
         <GlobalStyle />
         <body>{children}</body>

@@ -733,26 +733,24 @@ export default function Home() {
             <ModalTitle>Welcome to Shallow Research</ModalTitle>
 
             <ModalContent>
-              Your AI-powered research companion that turns complex topics into
-              digestible insights. Perfect for when you need to understand
-              something quickly without getting lost in the details.
+              Your AI research sidekick for fast, focused insights.
             </ModalContent>
 
             <ModalFeatureList>
               <li style={{ '--index': 0 } as React.CSSProperties}>
-                Ask any question and get clear, concise answers
+                Ask anything. Get clear, simple answers.
               </li>
               <li style={{ '--index': 1 } as React.CSSProperties}>
-                Follow suggested questions to explore deeper
+                Follow smart follow-ups to dive deeper.
               </li>
               <li style={{ '--index': 2 } as React.CSSProperties}>
-                Click highlighted concepts for instant explanations
+                Tap highlighted terms to learn instantly.
               </li>
               <li style={{ '--index': 3 } as React.CSSProperties}>
-                Adjust detail level with the side slider
+                Slide to adjust detail, from bite-sized to in-depth.
               </li>
               <li style={{ '--index': 4 } as React.CSSProperties}>
-                Track your research journey in the sidebar
+                See your research trail in the sidebar.
               </li>
             </ModalFeatureList>
 

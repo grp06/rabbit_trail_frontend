@@ -259,7 +259,7 @@ export const Sidebar = styled.aside<{ $isVisible: boolean; theme: Theme }>`
   overflow-x: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
-  margin-top: 80px;
+  margin-top: 60px;
   opacity: ${(props) => (props.$isVisible ? 1 : 0)};
   transform: translateX(${(props) => (props.$isVisible ? '0' : '-20px')});
   box-shadow: inset 8px 0 16px ${(props) => props.theme.colors.shadowDark},
@@ -277,11 +277,13 @@ export const MainContainer = styled.main<{ theme: Theme }>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12vh ${(props) => props.theme.spacing.xl}
-    ${(props) => props.theme.spacing.xl};
+  padding: 8vh ${(props) => props.theme.spacing.xl}
+    ${(props) => props.theme.spacing.lg};
   flex: 1;
   color: ${(props) => props.theme.colors.textSecondary};
   max-width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
 `
 
 export const InputContainer = styled(BaseCard)<{ theme: Theme }>`
@@ -289,7 +291,7 @@ export const InputContainer = styled(BaseCard)<{ theme: Theme }>`
   max-width: 800px;
   display: flex;
   align-items: center;
-  margin-bottom: ${(props) => props.theme.spacing.xl};
+  margin-bottom: ${(props) => props.theme.spacing.lg};
   padding: 4px;
   ${neumorphic}
   box-shadow: ${(props) => props.theme.shadows.lg},
@@ -359,13 +361,13 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
   font-size: 20px;
   font-weight: 600;
   color: ${(props) => props.theme.colors.accent};
-  margin: ${(props) => props.theme.spacing.xl} 0
-    ${(props) => props.theme.spacing.md};
+  margin: ${(props) => props.theme.spacing.lg} 0
+    ${(props) => props.theme.spacing.sm};
   width: 90%;
   max-width: 800px;
   line-height: 1.4;
-  padding: ${(props) => props.theme.spacing.lg}
-    ${(props) => props.theme.spacing.xl};
+  padding: ${(props) => props.theme.spacing.md}
+    ${(props) => props.theme.spacing.lg};
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   position: relative;
 
@@ -392,10 +394,10 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
 export const ButtonContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: ${(props) => props.theme.spacing.lg};
+  gap: ${(props) => props.theme.spacing.md};
   width: 90%;
   max-width: 800px;
-  margin: ${(props) => props.theme.spacing.xl} 0;
+  margin: ${(props) => props.theme.spacing.lg} 0;
   padding: 0;
 `
 
@@ -729,8 +731,8 @@ export const NavigationHeader = styled.header<{ theme: Theme }>`
   left: 0;
   right: 0;
   z-index: 1000;
-  padding: ${(props) => props.theme.spacing.md}
-    ${(props) => props.theme.spacing.xl};
+  padding: ${(props) => props.theme.spacing.sm}
+    ${(props) => props.theme.spacing.lg};
   ${surfaceGradient}
   backdrop-filter: blur(10px);
   border-bottom: 1px solid ${(props) => props.theme.colors.borderSubtle};
@@ -748,7 +750,7 @@ export const NavigationContainer = styled.nav`
 `
 
 export const Logo = styled.h1<{ theme: Theme }>`
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: ${(props) => props.theme.colors.textPrimary};
   margin: 0;
