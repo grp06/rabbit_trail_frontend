@@ -992,6 +992,14 @@ export const ModalCloseButton = styled(BaseButton)<{ theme: Theme }>`
   color: ${(props) => props.theme.colors.textMuted};
   font-size: 18px;
   font-weight: 300;
+
+  @media (max-width: 768px) {
+    top: ${(props) => props.theme.spacing.md};
+    right: ${(props) => props.theme.spacing.md};
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
 `
 
 export const ModalTitle = styled.h2<{ theme: Theme }>`
@@ -1074,5 +1082,10 @@ export const ModalButton = styled(BaseButton)<{ theme: Theme }>`
 
   &:active {
     box-shadow: ${(props) => props.theme.shadows.neuPressed};
+  }
+
+  @media (max-width: 768px) {
+    padding: ${(props) => props.theme.spacing.md};
+    font-size: 15px;
   }
 `
