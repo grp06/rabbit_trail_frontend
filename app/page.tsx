@@ -2,7 +2,12 @@
 
 import React, { useState, useReducer, useCallback, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShuffle, faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
+import {
+  faShuffle,
+  faMoon,
+  faSun,
+  faBars,
+} from '@fortawesome/free-solid-svg-icons'
 import { ThemeProvider } from 'styled-components'
 import { API_ENDPOINTS } from './config'
 import { analytics } from './lib/analytics'
@@ -21,7 +26,6 @@ import {
   HighlightedText,
   HistoryEntry,
   HistoryQuery,
-  HistorySnippet,
   RevertButton,
   ConcisenessSidebar,
   SliderContainer,
@@ -34,6 +38,7 @@ import {
   Logo,
   NavigationLinks,
   NavigationLink,
+  MobileMenuButton,
   LoadingIndicator,
   StreamingIndicator,
   ThemeToggle,
@@ -45,59 +50,92 @@ import {
   ModalContent,
   ModalFeatureList,
   ModalButton,
+  MobileOverlay,
   lightTheme,
   darkTheme,
 } from './StyledComponents'
 
-// 32 diverse suggested questions from various topics
+// 64 unusual and intriguing questions from various topics
 const SUGGESTED_QUESTIONS = [
   // History
-  'What caused the fall of the Roman Empire?',
-  'How did the printing press change society?',
-  'What were the main causes of World War I?',
-  'Why did the Maya civilization collapse?',
+  'Why did Napoleon have a pathological fear of cats and how did this affect his conquests?',
+  'How did a dead Pope get put on trial in 897 AD and what were the charges?',
+  'Why did the CIA try to use cats as living surveillance devices in the 1960s?',
+  'What happened to the 40,000 tons of human hair the Nazis collected during WWII?',
+  'Why did the Roman Emperor Caligula declare war on Neptune and order his soldiers to stab the ocean?',
+  'How did a dancing plague in 1518 cause hundreds of people to literally dance themselves to death?',
+  'Why did the Australian military lose a war against emus in 1932 and what were the casualties?',
+  'What really happened to the 9th Roman Legion that just vanished into thin air in Scotland?',
 
   // Science & Technology
-  'How do black holes form and what happens inside them?',
-  'What is CRISPR and how is it changing medicine?',
-  'How does quantum computing work?',
-  'What causes the northern lights?',
+  'Why do scientists think octopuses might actually be aliens that arrived on Earth?',
+  'What happens if you put a grape in the microwave and why does it create plasma?',
+  'How did a computer programmer accidentally create the first computer worm by trying to measure the internet?',
+  'Why can humans tickle other people but never successfully tickle themselves?',
+  'What happens when you make a pencil out of diamond and try to write with it?',
+  'Why do some people see sounds as colors and how many senses do humans actually have?',
+  'How did scientists accidentally create a black hole in a laboratory and what happened next?',
+  'Why does your phone battery die faster when you desperately need it most?',
 
   // Biology & Medicine
-  'How does the human immune system fight viruses?',
-  'What makes some people live longer than others?',
-  'How do vaccines work at the cellular level?',
-  'Why do we dream and what purpose does it serve?',
+  'Why do some people sneeze uncontrollably when they look at bright lights?',
+  'How many bugs do you actually eat per year without knowing it?',
+  'Why does your foot fall asleep and what are those pins and needles really doing?',
+  'What happens to your body if you only eat one color of food for a month?',
+  'Why do dead bodies sometimes sit up and move around in morgues?',
+  'What happens if you transplant a head onto another body and whose memories survive?',
+  'Why do some people wake up during surgery and what do they actually experience?',
+  'How many bacteria are having sex on your skin right now and should you be worried?',
 
   // Psychology & Human Behavior
-  'What causes procrastination and how can it be overcome?',
-  'How does social media affect mental health?',
-  'What makes some people more creative than others?',
-  'Why do humans form superstitions?',
+  'Why do people see Jesus in toast but struggle to recognize faces sometimes?',
+  "How do people born blind experience nightmares if they've never seen anything scary?",
+  'Why do some people compulsively eat ice cubes and what does their brain crave?',
+  'What actually happens in your mind when someone says "don\'t think of a pink elephant"?',
+  'Why do people get sexually attracted to objects like cars and buildings?',
+  'What happens in your brain when you get a song stuck on repeat for days?',
+  'Why do some people genuinely believe they are dead and how do you convince them otherwise?',
+  'What makes identical twins develop completely different personalities when they share the same DNA?',
 
   // Economics & Society
-  'What causes inflation and how does it affect everyday life?',
-  'How do cryptocurrencies actually work?',
-  'What is universal basic income and could it work?',
-  'Why do some countries develop faster than others?',
+  'Why did tulip bulbs once cost more than luxury houses in Amsterdam?',
+  'What would happen to the global economy if everyone suddenly decided to only barter?',
+  "How much money is currently hidden in people's mattresses around the world?",
+  'Why do some Pacific islands still use giant stone wheels as legal currency?',
+  'What would happen if every person on Earth suddenly inherited exactly $1 million tomorrow?',
+  'Why do people pay thousands of dollars for water that tastes exactly like tap water?',
+  'How much does it actually cost to make a penny and why do we keep making them?',
+  'What happens to the global economy when everyone decides to work from bed permanently?',
 
   // Environment & Climate
-  'How do coral reefs support marine ecosystems?',
-  'What would happen if all the ice caps melted?',
-  'How do trees communicate with each other?',
-  'What causes earthquakes and can we predict them?',
+  'Why do flamingos stand on one leg and what happens if you force them to use both?',
+  "How do plants actually scream when they're being eaten and who first heard them?",
+  'What would happen if every earthworm on Earth disappeared overnight?',
+  'Why do some trees live for 5,000 years while others die after one bad weekend?',
+  'Why do cats bring you dead animals as gifts and what are they actually trying to tell you?',
+  'What happens when you play music to plants and do they actually have favorite genres?',
+  'Why do penguins have a specific rock they use as currency for mating rituals?',
+  'How do mushrooms secretly control the minds of insects to create zombie armies?',
 
   // Space & Astronomy
-  'How do we know the age of the universe?',
-  'What would happen if Earth lost its magnetic field?',
-  'How do scientists search for extraterrestrial life?',
-  "What is dark matter and why can't we see it?",
+  'What happens if you cry in space and where do your tears actually go?',
+  'Why does outer space smell exactly like hot metal and burnt steak?',
+  'What would happen if you threw a boomerang on the Moon?',
+  'How do astronauts deal with their hair constantly floating into their food?',
+  'What happens if you get pregnant in space and would the baby be considered an alien?',
+  'Why is there a giant cloud of alcohol floating in space and how much would it take to get drunk?',
+  'What would happen if you opened an umbrella in space and could it work as a solar sail?',
+  'How many dead bodies are currently floating around in space and whose are they?',
 
   // Philosophy & Ethics
-  'What is consciousness and how does it emerge?',
-  'Is artificial intelligence truly intelligent?',
-  'What makes an action morally right or wrong?',
-  'Can free will exist in a deterministic universe?',
+  'If you gradually replace every part of a ship, at what point does it stop being the same ship?',
+  'Why do we say "after dark" when it\'s technically after light disappears?',
+  "What color is a mirror actually, and why do most people think it's silver?",
+  'If everyone on Earth jumped at exactly the same time, would the planet actually move?',
+  'What happens to your consciousness during general anesthesia and where does "you" actually go?',
+  'If you could upload your brain to a computer, would the digital version be you or a copy?',
+  'Why do we call it "falling asleep" when we clearly lie down on purpose?',
+  'If aliens visited Earth but only communicated through interpretive dance, how would we respond?',
 ]
 
 interface HistoryItem {
@@ -186,7 +224,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         historyEntries: [action.payload, ...state.historyEntries],
-        isSidebarVisible: true,
+        // Only auto-open sidebar on desktop (screen width > 768px)
+        isSidebarVisible:
+          typeof window !== 'undefined' && window.innerWidth > 768
+            ? true
+            : state.isSidebarVisible,
       }
     case 'SET_HISTORY_ENTRIES':
       return { ...state, historyEntries: action.payload }
@@ -247,7 +289,7 @@ const initialState: AppState = {
   isDarkMode: true,
   isModalVisible: false,
   showSuggestedQuestions: true,
-  suggestedQuestions: getRandomQuestions(SUGGESTED_QUESTIONS),
+  suggestedQuestions: [], // Start with empty array to avoid hydration mismatch
 }
 
 export default function Home() {
@@ -286,12 +328,6 @@ export default function Home() {
     },
     [state.conciseness]
   )
-
-  // Memoized getSnippet function
-  const getSnippet = useCallback((text: string) => {
-    const firstSentence = text.match(/^[^.!?]+[.!?]/)
-    return firstSentence ? firstSentence[0] : text.substring(0, 100) + '...'
-  }, [])
 
   // Memoized slider position calculation
   const sliderPosition = useMemo(() => {
@@ -571,16 +607,32 @@ export default function Home() {
   const handleSliderInteraction = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
       const rect = event.currentTarget.getBoundingClientRect()
-      const y = event.clientY - rect.top
-      const percentage = (y / rect.height) * 100
+      const isMobile = window.innerWidth <= 768
 
-      // Snap to closest position
-      if (percentage <= 35) {
-        dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
-      } else if (percentage <= 65) {
-        dispatch({ type: 'SET_CONCISENESS', payload: 'medium' })
+      if (isMobile) {
+        // Horizontal slider for mobile
+        const x = event.clientX - rect.left
+        const percentage = (x / rect.width) * 100
+
+        if (percentage <= 35) {
+          dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
+        } else if (percentage <= 65) {
+          dispatch({ type: 'SET_CONCISENESS', payload: 'medium' })
+        } else {
+          dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
+        }
       } else {
-        dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
+        // Vertical slider for desktop
+        const y = event.clientY - rect.top
+        const percentage = (y / rect.height) * 100
+
+        if (percentage <= 35) {
+          dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
+        } else if (percentage <= 65) {
+          dispatch({ type: 'SET_CONCISENESS', payload: 'medium' })
+        } else {
+          dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
+        }
       }
     },
     []
@@ -705,6 +757,18 @@ export default function Home() {
         <NavigationHeader>
           <NavigationContainer>
             <Logo>Shallow Research</Logo>
+            <NavigationLinks>
+              <MobileMenuButton
+                onClick={() =>
+                  dispatch({
+                    type: 'SET_SIDEBAR_VISIBLE',
+                    payload: !state.isSidebarVisible,
+                  })
+                }
+              >
+                <FontAwesomeIcon icon={faBars} />
+              </MobileMenuButton>
+            </NavigationLinks>
           </NavigationContainer>
         </NavigationHeader>
 
@@ -746,6 +810,13 @@ export default function Home() {
           </div>
         </ConcisenessSidebar>
 
+        <MobileOverlay
+          $isVisible={state.isSidebarVisible}
+          onClick={() =>
+            dispatch({ type: 'SET_SIDEBAR_VISIBLE', payload: false })
+          }
+        />
+
         <Sidebar $isVisible={state.isSidebarVisible}>
           {/* History entries */}
           {state.historyEntries.map((entry, index) => (
@@ -753,7 +824,6 @@ export default function Home() {
               <HistoryQuery onClick={() => loadHistoryEntry(entry)}>
                 {entry.queryText}
               </HistoryQuery>
-              <HistorySnippet>{getSnippet(entry.responseText)}</HistorySnippet>
               <RevertButton onClick={() => handleRevert(entry, index)}>
                 Revert
               </RevertButton>

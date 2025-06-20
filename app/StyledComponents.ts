@@ -11,30 +11,32 @@ import {
   easings,
 } from './animations'
 
-// Extended Theme interface with design tokens
+// Extended Theme interface following neumorphic design principles
 interface Theme {
   colors: {
-    // Base colors
-    background: string
-    backgroundSecondary: string
-    backgroundTertiary: string
+    // Single material principle - base colors
+    base: string
+    baseLight: string
+    baseDark: string
+
+    // Surface colors (same as base for single material)
     surface: string
     surfaceRaised: string
     surfaceInset: string
 
-    // Text colors
+    // Text colors with proper contrast
     textPrimary: string
     textSecondary: string
     textTertiary: string
     textMuted: string
 
-    // Accent colors
+    // Accent colors (for icons/glyphs only, not surfaces)
     accent: string
     accentHover: string
     accentGlow: string
     accentSubtle: string
 
-    // Shadow colors for neumorphism
+    // Neumorphic shadow colors
     shadowLight: string
     shadowDark: string
     shadowAmbient: string
@@ -42,6 +44,14 @@ interface Theme {
     // Border colors
     border: string
     borderSubtle: string
+  }
+
+  // CSS custom properties for neumorphic design
+  neumorphic: {
+    depth: string
+    radius: string
+    blur: string
+    spread: string
   }
 
   // Design tokens
@@ -63,13 +73,11 @@ interface Theme {
   }
 
   shadows: {
-    sm: string
-    md: string
-    lg: string
-    xl: string
-    insetSm: string
-    insetMd: string
-    insetLg: string
+    neu: string
+    neuHover: string
+    neuPressed: string
+    neuInset: string
+    neuInsetDeep: string
   }
 
   transitions: {
@@ -78,122 +86,144 @@ interface Theme {
   }
 }
 
-// Extend themes with design tokens
-const createTheme = (colors: Theme['colors']): Theme => ({
-  colors,
+// Create neumorphic theme following the guide's principles
+const createNeumorphicTheme = (
+  baseColor: string,
+  shadowLight: string,
+  shadowDark: string,
+  textPrimary: string,
+  textSecondary: string,
+  accent: string
+): Theme => ({
+  colors: {
+    // Single material principle - all surfaces use the same base color
+    base: baseColor,
+    baseLight: baseColor,
+    baseDark: baseColor,
+
+    surface: baseColor,
+    surfaceRaised: baseColor,
+    surfaceInset: baseColor,
+
+    textPrimary,
+    textSecondary,
+    textTertiary: textSecondary,
+    textMuted: shadowDark.replace('0.15', '0.4'),
+
+    accent,
+    accentHover: accent,
+    accentGlow: accent.replace(')', ', 0.08)').replace('rgb', 'rgba'),
+    accentSubtle: accent.replace(')', ', 0.05)').replace('rgb', 'rgba'),
+
+    shadowLight,
+    shadowDark,
+    shadowAmbient: shadowDark.replace('0.15', '0.05'),
+
+    border: shadowDark.replace('0.15', '0.1'),
+    borderSubtle: shadowDark.replace('0.15', '0.05'),
+  },
+
+  neumorphic: {
+    depth: '6px',
+    radius: '16px',
+    blur: '16px',
+    spread: '0px',
+  },
+
   spacing: {
     xs: '0.25rem',
-    sm: '0.5rem',
-    md: '1rem',
-    lg: '1.5rem',
-    xl: '2rem',
-    xxl: '3rem',
+    sm: '0.75rem', // Increased spacing following guide
+    md: '1.5rem', // 1.5x Material Design spacing
+    lg: '2.25rem', // 1.5x Material Design spacing
+    xl: '3rem', // 2x Material Design spacing
+    xxl: '4.5rem', // 2x Material Design spacing
   },
+
   radii: {
-    sm: '6px',
+    sm: '8px',
     md: '12px',
-    lg: '16px',
-    xl: '20px',
+    lg: '16px', // Within 12-20px range recommended
+    xl: '20px', // Within 12-20px range recommended
     round: '50%',
   },
+
   shadows: {
-    sm: `4px 4px 8px ${colors.shadowDark}, -4px -4px 8px ${colors.shadowLight}`,
-    md: `8px 8px 16px ${colors.shadowDark}, -8px -8px 16px ${colors.shadowLight}`,
-    lg: `12px 12px 24px ${colors.shadowDark}, -12px -12px 24px ${colors.shadowLight}`,
-    xl: `16px 16px 32px ${colors.shadowDark}, -16px -16px 32px ${colors.shadowLight}`,
-    insetSm: `inset 2px 2px 4px ${colors.shadowDark}, inset -2px -2px 4px ${colors.shadowLight}`,
-    insetMd: `inset 6px 6px 12px ${colors.shadowDark}, inset -6px -6px 12px ${colors.shadowLight}`,
-    insetLg: `inset 8px 8px 16px ${colors.shadowDark}, inset -8px -8px 16px ${colors.shadowLight}`,
+    // Twin shadows following the guide's formula
+    neu: `6px 6px 16px ${shadowDark}, -6px -6px 16px ${shadowLight}`,
+    neuHover: `8px 8px 20px ${shadowDark}, -8px -8px 20px ${shadowLight}`,
+    neuPressed: `inset 6px 6px 12px ${shadowDark}, inset -6px -6px 12px ${shadowLight}`,
+    neuInset: `inset 3px 3px 8px ${shadowDark}, inset -3px -3px 8px ${shadowLight}`,
+    neuInsetDeep: `inset 8px 8px 16px ${shadowDark}, inset -8px -8px 16px ${shadowLight}`,
   },
+
   transitions: {
     default: `all ${durations.normal} ${easings.easeOut}`,
-    smooth: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    smooth: `all 0.25s cubic-bezier(0.4, 0, 0.2, 1)`,
   },
 })
 
-// Light theme
-export const lightTheme = createTheme({
-  background: '#FAFAFA',
-  backgroundSecondary: '#F5F5F5',
-  backgroundTertiary: '#EEEEEE',
-  surface: '#FFFFFF',
-  surfaceRaised: '#FFFFFF',
-  surfaceInset: '#F0F0F0',
-  textPrimary: '#1A1A1A',
-  textSecondary: '#404040',
-  textTertiary: '#666666',
-  textMuted: '#999999',
-  accent: '#4A90E2',
-  accentHover: '#357ABD',
-  accentGlow: 'rgba(74, 144, 226, 0.15)',
-  accentSubtle: 'rgba(74, 144, 226, 0.08)',
-  shadowLight: 'rgba(255, 255, 255, 0.8)',
-  shadowDark: 'rgba(0, 0, 0, 0.08)',
-  shadowAmbient: 'rgba(0, 0, 0, 0.04)',
-  border: '#E0E0E0',
-  borderSubtle: 'rgba(0, 0, 0, 0.05)',
-})
+// Light theme following guide's recommendations
+export const lightTheme = createNeumorphicTheme(
+  '#E0E5EC', // Recommended base color from guide
+  'rgba(255, 255, 255, 0.6)', // Light shadow exactly as specified
+  'rgba(0, 0, 0, 0.15)', // Dark shadow exactly as specified
+  '#2C3E50', // High contrast text (4.5:1 ratio)
+  '#5A6B7D', // Secondary text with good contrast
+  '#4A90E2' // Accent color for icons/glyphs only
+)
 
-// Dark theme
-export const darkTheme = createTheme({
-  background: '#0A0A0B',
-  backgroundSecondary: '#111113',
-  backgroundTertiary: '#1A1A1D',
-  surface: '#141416',
-  surfaceRaised: '#1E1E21',
-  surfaceInset: '#080809',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#E0E0E0',
-  textTertiary: '#A0A0A0',
-  textMuted: '#606060',
-  accent: '#5DADE2',
-  accentHover: '#3498DB',
-  accentGlow: 'rgba(93, 173, 226, 0.12)',
-  accentSubtle: 'rgba(93, 173, 226, 0.06)',
-  shadowLight: 'rgba(255, 255, 255, 0.02)',
-  shadowDark: 'rgba(0, 0, 0, 0.4)',
-  shadowAmbient: 'rgba(0, 0, 0, 0.2)',
-  border: '#2A2A2D',
-  borderSubtle: 'rgba(255, 255, 255, 0.03)',
-})
+// Dark theme following guide's color-math approach
+export const darkTheme = createNeumorphicTheme(
+  '#1E2126', // Lightened from #15171C for better visibility
+  'rgba(255, 255, 255, 0.05)', // Slightly increased light shadow
+  'rgba(0, 0, 0, 0.3)', // Reduced dark shadow intensity
+  '#FFFFFF', // White text for contrast
+  '#B8BCC8', // Muted secondary text
+  '#5DADE2' // Slightly brighter accent for dark theme
+)
 
-// Reusable mixins
-const surfaceGradient = css<{ theme: Theme }>`
-  background: linear-gradient(
-    145deg,
-    ${(props) => props.theme.colors.surfaceRaised},
-    ${(props) => props.theme.colors.background}
-  );
+// Neumorphic mixins following the guide's principles
+const neumorphicBase = css<{ theme: Theme }>`
+  background: ${(props) => props.theme.colors.base};
+  border-radius: ${(props) => props.theme.neumorphic.radius};
+  box-shadow: ${(props) => props.theme.shadows.neu};
+  transition: ${(props) => props.theme.transitions.smooth};
+  border: none;
 `
 
-const insetGradient = css<{ theme: Theme }>`
-  background: linear-gradient(
-    145deg,
-    ${(props) => props.theme.colors.surfaceInset},
-    ${(props) => props.theme.colors.background}
-  );
+const neumorphicHover = css<{ theme: Theme }>`
+  &:hover:not(:disabled) {
+    box-shadow: ${(props) => props.theme.shadows.neuHover};
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+  }
 `
 
-const neumorphic = css<{ theme: Theme; size?: 'sm' | 'md' | 'lg' | 'xl' }>`
-  ${surfaceGradient}
-  box-shadow: ${(props) => props.theme.shadows[props.size || 'md']};
+const neumorphicPressed = css<{ theme: Theme }>`
+  &:active:not(:disabled),
+  &[aria-pressed='true'] {
+    box-shadow: ${(props) => props.theme.shadows.neuPressed};
+    transform: translateY(0);
+    filter: brightness(0.98);
+  }
 `
 
-const neumorphicInset = css<{ theme: Theme; size?: 'sm' | 'md' | 'lg' }>`
-  ${insetGradient}
-  box-shadow: ${(props) => {
-    const size = props.size || 'md'
-    const shadowKey = `inset${size.charAt(0).toUpperCase()}${size.slice(
-      1
-    )}` as keyof typeof props.theme.shadows
-    return props.theme.shadows[shadowKey] || props.theme.shadows.insetMd
-  }};
+const neumorphicInset = css<{ theme: Theme }>`
+  background: ${(props) => props.theme.colors.base};
+  box-shadow: ${(props) => props.theme.shadows.neuInset};
+  border-radius: ${(props) => props.theme.radii.md};
+`
+
+const neumorphicInsetDeep = css<{ theme: Theme }>`
+  background: ${(props) => props.theme.colors.base};
+  box-shadow: ${(props) => props.theme.shadows.neuInsetDeep};
+  border-radius: ${(props) => props.theme.radii.md};
 `
 
 const smoothScrollbar = css<{ theme: Theme }>`
   scrollbar-width: thin;
   scrollbar-color: ${(props) => props.theme.colors.border}
-    ${(props) => props.theme.colors.surfaceInset};
+    ${(props) => props.theme.colors.base};
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -201,7 +231,7 @@ const smoothScrollbar = css<{ theme: Theme }>`
   }
 
   &::-webkit-scrollbar-track {
-    background: ${(props) => props.theme.colors.surfaceInset};
+    background: ${(props) => props.theme.colors.base};
     border-radius: ${(props) => props.theme.radii.sm};
   }
 
@@ -222,39 +252,48 @@ const textOptimization = css`
   text-rendering: optimizeLegibility;
 `
 
-// Base components
+// Base components following neumorphic principles
 const BaseButton = styled.button<{ theme: Theme }>`
-  border: none;
+  ${neumorphicBase}
+  ${neumorphicHover}
+  ${neumorphicPressed}
   cursor: pointer;
   font-family: inherit;
-  transition: ${(props) => props.theme.transitions.smooth};
+  color: ${(props) => props.theme.colors.textSecondary};
   ${textOptimization}
 
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
+    box-shadow: ${(props) => props.theme.shadows.neu};
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${(props) => props.theme.colors.accent};
+    outline-offset: 2px;
   }
 `
 
-const BaseCard = styled.div<{ theme: Theme; size?: 'sm' | 'md' | 'lg' | 'xl' }>`
-  ${neumorphic}
-  border-radius: ${(props) => props.theme.radii.lg};
-  transition: ${(props) => props.theme.transitions.default};
+const BaseCard = styled.div<{ theme: Theme }>`
+  ${neumorphicBase}
+  ${textOptimization}
 `
 
 // Main components
 export const AppContainer = styled.div<{ theme: Theme }>`
   display: flex;
   min-height: 100vh;
-  background: ${(props) => props.theme.colors.background};
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: ${(props) => props.theme.colors.base};
+  font-family: var(--font-space-grotesk), 'Comic Sans MS', 'Comic Sans', cursive,
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   transition: background ${durations.normal} ease;
+  ${textOptimization}
 `
 
 export const Sidebar = styled.aside<{ $isVisible: boolean; theme: Theme }>`
   width: ${(props) => (props.$isVisible ? '320px' : '0')};
-  ${surfaceGradient}
+  background: ${(props) => props.theme.colors.base};
   overflow-y: auto;
   overflow-x: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -262,8 +301,7 @@ export const Sidebar = styled.aside<{ $isVisible: boolean; theme: Theme }>`
   margin-top: 60px;
   opacity: ${(props) => (props.$isVisible ? 1 : 0)};
   transform: translateX(${(props) => (props.$isVisible ? '0' : '-20px')});
-  box-shadow: inset 8px 0 16px ${(props) => props.theme.colors.shadowDark},
-    inset -2px 0 8px ${(props) => props.theme.colors.shadowLight};
+  ${neumorphicInsetDeep}
   ${smoothScrollbar}
 
   & > * {
@@ -296,8 +334,8 @@ export const MainContainer = styled.main<{ theme: Theme }>`
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 4vh ${(props) => props.theme.spacing.md}
-      ${(props) => props.theme.spacing.md};
+    padding: calc(60px + ${(props) => props.theme.spacing.md})
+      ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.sm};
   }
 `
 
@@ -308,13 +346,10 @@ export const InputContainer = styled(BaseCard)<{ theme: Theme }>`
   align-items: center;
   margin-bottom: ${(props) => props.theme.spacing.lg};
   padding: 4px;
-  ${neumorphic}
-  box-shadow: ${(props) => props.theme.shadows.lg}, ${(props) =>
-    props.theme.shadows.insetSm};
 
   @media (max-width: 768px) {
     width: 95%;
-    margin-bottom: ${(props) => props.theme.spacing.md};
+    margin-bottom: ${(props) => props.theme.spacing.sm};
   }
 `
 
@@ -326,27 +361,30 @@ export const CenteredInput = styled.input<{ theme: Theme }>`
   font-weight: 400;
   font-family: inherit;
   border: none;
-  border-radius: ${(props) => props.theme.radii.md};
   outline: none;
   transition: ${(props) => props.theme.transitions.smooth};
   color: ${(props) => props.theme.colors.textPrimary};
-  ${insetGradient}
-  box-shadow: ${(props) => props.theme.shadows.insetMd};
+  ${neumorphicInset}
+  ${textOptimization}
+
+  // Enhanced visibility for input field
+  background: ${(props) =>
+    props.theme.colors.base === '#1E2126'
+      ? '#252A30' // Slightly lighter background for dark theme input
+      : props.theme.colors.base};
 
   &::placeholder {
-    color: ${(props) => props.theme.colors.textMuted};
+    color: ${(props) =>
+      props.theme.colors.base === '#1E2126'
+        ? 'rgba(255, 255, 255, 0.5)' // Light placeholder for dark theme
+        : props.theme.colors.textMuted};
     font-weight: 400;
   }
 
   &:focus {
-    ${insetGradient}
-    box-shadow: ${(props) => props.theme.shadows.insetLg},
+    box-shadow: ${(props) => props.theme.shadows.neuInsetDeep},
       0 0 0 2px ${(props) => props.theme.colors.accentGlow};
-    transform: scale(1.01);
-  }
-
-  &:hover:not(:focus) {
-    ${insetGradient}
+    transform: scale(1.005);
   }
 `
 
@@ -360,19 +398,22 @@ export const Result = styled(BaseCard)<{ theme: Theme }>`
   color: ${(props) => props.theme.colors.textSecondary};
   padding: ${(props) => props.theme.spacing.xl};
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
-  border-radius: ${(props) => props.theme.radii.xl};
-  ${textOptimization}
   word-spacing: 0.05em;
   letter-spacing: 0.01em;
-
-  box-shadow: ${(props) => props.theme.shadows.xl},
-    ${(props) => props.theme.shadows.insetSm};
 
   & * {
     font-size: inherit;
     line-height: inherit;
     font-family: inherit;
     font-weight: inherit;
+  }
+
+  @media (max-width: 768px) {
+    width: 95%;
+    font-size: 16px;
+    padding: ${(props) => props.theme.spacing.md};
+    margin: ${(props) => props.theme.spacing.xs} 0;
+    line-height: 1.6;
   }
 `
 
@@ -390,8 +431,6 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
     ${(props) => props.theme.spacing.lg};
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   position: relative;
-  box-shadow: ${(props) => props.theme.shadows.lg},
-    ${(props) => props.theme.shadows.insetSm};
 
   &::before {
     content: '';
@@ -400,13 +439,18 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
     left: 0;
     width: 4px;
     height: 100%;
-    background: linear-gradient(
-      180deg,
-      ${(props) => props.theme.colors.accent},
-      ${(props) => props.theme.colors.accentHover}
-    );
+    background: ${(props) => props.theme.colors.accent};
     border-radius: 2px 0 0 2px;
     box-shadow: 0 0 4px ${(props) => props.theme.colors.accentGlow};
+  }
+
+  @media (max-width: 768px) {
+    width: 95%;
+    font-size: 18px;
+    margin: ${(props) => props.theme.spacing.sm} 0
+      ${(props) => props.theme.spacing.xs};
+    padding: ${(props) => props.theme.spacing.sm}
+      ${(props) => props.theme.spacing.md};
   }
 `
 
@@ -422,8 +466,8 @@ export const ButtonContainer = styled.div`
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     width: 95%;
-    gap: ${(props) => props.theme.spacing.sm};
-    margin: ${(props) => props.theme.spacing.md} 0;
+    gap: ${(props) => props.theme.spacing.xs};
+    margin: ${(props) => props.theme.spacing.sm} 0;
   }
 `
 
@@ -431,31 +475,11 @@ export const FollowUpButton = styled(BaseButton)<{ theme: Theme }>`
   padding: 1.25rem ${(props) => props.theme.spacing.lg};
   font-size: 15px;
   font-weight: 500;
-  border-radius: ${(props) => props.theme.radii.lg};
-  color: ${(props) => props.theme.colors.textSecondary};
   line-height: 1.4;
   text-align: left;
   position: relative;
   animation: ${scaleIn} ${durations.normal} ${easings.spring} both;
   animation-delay: calc(var(--index) * 50ms);
-  ${neumorphic}
-
-  box-shadow: ${(props) => props.theme.shadows.md},
-    ${(props) => props.theme.shadows.insetSm};
-
-  &:hover {
-    color: ${(props) => props.theme.colors.textPrimary};
-    ${surfaceGradient}
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: ${(props) => props.theme.shadows.lg},
-      ${(props) => props.theme.shadows.insetSm},
-      0 0 12px ${(props) => props.theme.colors.accentSubtle};
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: ${(props) => props.theme.shadows.insetMd};
-  }
 
   &::before {
     content: '';
@@ -474,7 +498,12 @@ export const FollowUpButton = styled(BaseButton)<{ theme: Theme }>`
   &:hover::before {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 0 8px ${(props) => props.theme.colors.accentGlow};
+    box-shadow: 0 0 4px ${(props) => props.theme.colors.accentGlow};
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem ${(props) => props.theme.spacing.md};
+    font-size: 14px;
   }
 `
 
@@ -483,30 +512,11 @@ export const ShuffleButton = styled(BaseButton)<{ theme: Theme }>`
     ${(props) => props.theme.spacing.lg};
   font-size: 14px;
   font-weight: 500;
-  border-radius: ${(props) => props.theme.radii.md};
   display: flex;
   align-items: center;
   justify-content: center;
   gap: ${(props) => props.theme.spacing.sm};
   min-width: 140px;
-  color: ${(props) => props.theme.colors.textSecondary};
-  ${neumorphic}
-  box-shadow: ${(props) => props.theme.shadows.sm}, ${(props) =>
-    props.theme.shadows.insetSm};
-
-  &:hover:not(:disabled) {
-    color: ${(props) => props.theme.colors.textPrimary};
-    transform: translateY(-1px);
-    ${surfaceGradient}
-    box-shadow: ${(props) => props.theme.shadows.md},
-      ${(props) => props.theme.shadows.insetSm},
-      0 0 8px ${(props) => props.theme.colors.accentSubtle};
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: ${(props) => props.theme.shadows.insetMd};
-  }
 
   svg {
     transition: transform 0.3s ease;
@@ -556,22 +566,8 @@ export const HighlightedText = styled.span<{ theme: Theme }>`
 export const HistoryEntry = styled(BaseCard)<{ theme: Theme }>`
   margin: ${(props) => props.theme.spacing.sm};
   padding: ${(props) => props.theme.spacing.md};
-  border-radius: ${(props) => props.theme.radii.md};
   cursor: pointer;
-  background: linear-gradient(
-    145deg,
-    ${(props) => props.theme.colors.background},
-    ${(props) => props.theme.colors.surfaceInset}
-  );
-  box-shadow: ${(props) => props.theme.shadows.sm},
-    ${(props) => props.theme.shadows.insetSm};
-
-  &:hover {
-    ${surfaceGradient}
-    transform: translateY(-1px);
-    box-shadow: ${(props) => props.theme.shadows.sm},
-      ${(props) => props.theme.shadows.insetSm};
-  }
+  ${neumorphicHover}
 `
 
 export const HistoryQuery = styled.div<{ theme: Theme }>`
@@ -592,25 +588,20 @@ export const HistorySnippet = styled.div<{ theme: Theme }>`
 `
 
 export const RevertButton = styled(BaseButton)<{ theme: Theme }>`
-  background: none;
+  background: ${(props) => props.theme.colors.base};
   color: ${(props) => props.theme.colors.accent};
   padding: ${(props) => props.theme.spacing.xs}
     ${(props) => props.theme.spacing.sm};
   font-size: 11px;
   font-weight: 500;
   margin-top: ${(props) => props.theme.spacing.sm};
-  border-radius: ${(props) => props.theme.radii.sm};
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: ${(props) => props.theme.shadows.neuInset};
 
   &:hover {
-    ${insetGradient}
-    box-shadow: ${(props) => props.theme.shadows.insetSm};
     color: ${(props) => props.theme.colors.textPrimary};
-  }
-
-  &:active {
-    color: ${(props) => props.theme.colors.accentHover};
+    box-shadow: ${(props) => props.theme.shadows.neuPressed};
   }
 `
 
@@ -625,12 +616,12 @@ export const ConcisenessSidebar = styled(BaseCard)<{ theme: Theme }>`
   z-index: 1000;
   padding: ${(props) => props.theme.spacing.lg}
     ${(props) => props.theme.spacing.md};
-  border-radius: ${(props) => props.theme.radii.xl};
   backdrop-filter: blur(10px);
   border: 1px solid ${(props) => props.theme.colors.borderSubtle};
 
-  box-shadow: ${(props) => props.theme.shadows.lg},
-    ${(props) => props.theme.shadows.insetSm};
+  @media (max-width: 768px) {
+    display: none;
+  }
 `
 
 export const SliderContainer = styled.div`
@@ -642,6 +633,12 @@ export const SliderContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media (max-width: 768px) {
+    height: 20px;
+    width: 100px;
+    margin: 0 ${(props) => props.theme.spacing.md};
+  }
 `
 
 export const SliderTrack = styled.div<{ theme: Theme }>`
@@ -652,9 +649,15 @@ export const SliderTrack = styled.div<{ theme: Theme }>`
   width: 6px;
   height: 100%;
   border-radius: 3px;
-  ${insetGradient}
-  box-shadow: inset 3px 3px 6px ${(props) => props.theme.colors.shadowDark},
-    inset -3px -3px 6px ${(props) => props.theme.colors.shadowLight};
+  ${neumorphicInset}
+
+  @media (max-width: 768px) {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 6px;
+  }
 `
 
 export const SliderThumb = styled.div<{ $position: number; theme: Theme }>`
@@ -668,27 +671,26 @@ export const SliderThumb = styled.div<{ $position: number; theme: Theme }>`
   cursor: grab;
   transition: ${(props) => props.theme.transitions.smooth};
   z-index: 10;
-  background: linear-gradient(
-    145deg,
-    ${(props) => props.theme.colors.accent},
-    ${(props) => props.theme.colors.accentHover}
-  );
-  box-shadow: ${(props) => props.theme.shadows.sm},
-    inset 1px 1px 2px rgba(255, 255, 255, 0.15),
-    inset -1px -1px 2px rgba(0, 0, 0, 0.2),
-    0 0 12px ${(props) => props.theme.colors.accentGlow};
+  background: ${(props) => props.theme.colors.accent};
+  box-shadow: ${(props) => props.theme.shadows.neu},
+    0 0 6px ${(props) => props.theme.colors.accentGlow};
 
   &:hover {
     transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: ${(props) => props.theme.shadows.sm},
-      inset 2px 2px 4px rgba(255, 255, 255, 0.2),
-      inset -2px -2px 4px rgba(0, 0, 0, 0.3),
-      0 0 20px ${(props) => props.theme.colors.accentGlow};
+    box-shadow: ${(props) => props.theme.shadows.neuHover},
+      0 0 10px ${(props) => props.theme.colors.accentGlow};
   }
 
   &:active {
     transform: translate(-50%, -50%) scale(0.95);
     cursor: grabbing;
+    box-shadow: ${(props) => props.theme.shadows.neuPressed};
+  }
+
+  @media (max-width: 768px) {
+    top: 50%;
+    left: ${(props) => props.$position}%;
+    transform: translate(-50%, -50%);
   }
 `
 
@@ -701,8 +703,7 @@ export const SliderLabel = styled.div<{ $isActive: boolean; theme: Theme }>`
   margin: 0;
   transition: all 0.3s ease;
   cursor: pointer;
-  padding: ${(props) => props.theme.spacing.sm}
-    ${(props) => props.theme.spacing.sm};
+  padding: ${(props) => props.theme.spacing.sm};
   border-radius: ${(props) => props.theme.radii.md};
   min-height: 16px;
   display: flex;
@@ -712,13 +713,9 @@ export const SliderLabel = styled.div<{ $isActive: boolean; theme: Theme }>`
   ${(props) =>
     props.$isActive &&
     css`
-      background: linear-gradient(
-        145deg,
-        ${props.theme.colors.surfaceInset},
-        ${props.theme.colors.background}
-      );
-      box-shadow: ${props.theme.shadows.insetSm};
-      text-shadow: 0 0 6px ${props.theme.colors.accentGlow};
+      background: ${props.theme.colors.base};
+      box-shadow: ${props.theme.shadows.neuInset};
+      text-shadow: 0 0 3px ${props.theme.colors.accentGlow};
     `}
 
   &:hover {
@@ -729,12 +726,8 @@ export const SliderLabel = styled.div<{ $isActive: boolean; theme: Theme }>`
     ${(props) =>
       !props.$isActive &&
       css`
-        background: linear-gradient(
-          145deg,
-          ${props.theme.colors.background},
-          ${props.theme.colors.surfaceInset}
-        );
-        box-shadow: ${props.theme.shadows.sm};
+        background: ${props.theme.colors.base};
+        box-shadow: ${props.theme.shadows.neu};
       `}
   }
 `
@@ -758,12 +751,15 @@ export const NavigationHeader = styled.header<{ theme: Theme }>`
   z-index: 1000;
   padding: ${(props) => props.theme.spacing.sm}
     ${(props) => props.theme.spacing.lg};
-  ${surfaceGradient}
+  background: ${(props) => props.theme.colors.base};
   backdrop-filter: blur(10px);
   border-bottom: 1px solid ${(props) => props.theme.colors.borderSubtle};
-  box-shadow: 0 8px 32px ${(props) => props.theme.colors.shadowDark},
-    0 -2px 8px ${(props) => props.theme.colors.shadowLight},
-    inset 0 1px 2px ${(props) => props.theme.colors.shadowLight};
+  box-shadow: ${(props) => props.theme.shadows.neu};
+
+  @media (max-width: 768px) {
+    padding: ${(props) => props.theme.spacing.sm}
+      ${(props) => props.theme.spacing.md};
+  }
 `
 
 export const NavigationContainer = styled.nav`
@@ -784,7 +780,7 @@ export const Logo = styled.h1<{ theme: Theme }>`
 
   &:hover {
     color: ${(props) => props.theme.colors.accent};
-    text-shadow: 0 0 8px ${(props) => props.theme.colors.accentGlow};
+    text-shadow: 0 0 4px ${(props) => props.theme.colors.accentGlow};
   }
 `
 
@@ -792,6 +788,18 @@ export const NavigationLinks = styled.div`
   display: flex;
   gap: ${(props) => props.theme.spacing.md};
   align-items: center;
+`
+
+export const MobileMenuButton = styled(BaseButton)<{ theme: Theme }>`
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
 `
 
 export const NavigationLink = styled(BaseButton)<{
@@ -802,59 +810,27 @@ export const NavigationLink = styled(BaseButton)<{
     ${(props) => props.theme.spacing.lg};
   font-size: 14px;
   font-weight: 500;
-  border-radius: ${(props) => props.theme.radii.md};
   color: ${(props) =>
     props.$isActive
       ? props.theme.colors.accent
       : props.theme.colors.textSecondary};
 
   ${(props) =>
-    props.$isActive
-      ? css`
-          background: linear-gradient(
-            145deg,
-            ${props.theme.colors.surfaceInset},
-            ${props.theme.colors.background}
-          );
-          box-shadow: ${props.theme.shadows.insetMd};
-        `
-      : css`
-          background: linear-gradient(
-            145deg,
-            ${props.theme.colors.surfaceRaised},
-            ${props.theme.colors.background}
-          );
-          box-shadow: ${props.theme.shadows.sm}, ${props.theme.shadows.insetSm};
-        `}
-
-  &:hover {
-    color: ${(props) => props.theme.colors.textPrimary};
-    ${surfaceGradient}
-    transform: translateY(-1px);
-    box-shadow: ${(props) => props.theme.shadows.md},
-      ${(props) => props.theme.shadows.insetSm},
-      0 0 8px ${(props) => props.theme.colors.accentSubtle};
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: ${(props) => props.theme.shadows.insetMd};
-  }
+    props.$isActive &&
+    css`
+      box-shadow: ${props.theme.shadows.neuPressed};
+    `}
 `
 
 export const LoadingIndicator = styled.div<{ theme: Theme }>`
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   padding: ${(props) => props.theme.spacing.sm}
     ${(props) => props.theme.spacing.md};
   border-radius: ${(props) => props.theme.radii.md};
-  background: linear-gradient(
-    145deg,
-    ${(props) => props.theme.colors.surfaceInset},
-    ${(props) => props.theme.colors.background}
-  );
-  box-shadow: ${(props) => props.theme.shadows.insetSm};
+  background: ${(props) => props.theme.colors.base};
+  box-shadow: ${(props) => props.theme.shadows.neuInset};
   animation: ${fadeIn} ${durations.fast} ${easings.easeOut};
 
   &::after {
@@ -908,22 +884,6 @@ export const ThemeToggle = styled(BaseButton)<{ theme: Theme }>`
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  ${neumorphic}
-
-  box-shadow: ${(props) => props.theme.shadows.md},
-    ${(props) => props.theme.shadows.insetSm};
-
-  &:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: ${(props) => props.theme.shadows.lg},
-      ${(props) => props.theme.shadows.insetSm},
-      0 0 16px ${(props) => props.theme.colors.accentSubtle};
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.95);
-    box-shadow: ${(props) => props.theme.shadows.insetMd};
-  }
 
   svg {
     width: 24px;
@@ -934,7 +894,19 @@ export const ThemeToggle = styled(BaseButton)<{ theme: Theme }>`
 
   &:hover svg {
     color: ${(props) => props.theme.colors.accentHover};
-    filter: drop-shadow(0 0 6px ${(props) => props.theme.colors.accentGlow});
+    filter: drop-shadow(0 0 3px ${(props) => props.theme.colors.accentGlow});
+  }
+
+  @media (max-width: 768px) {
+    bottom: ${(props) => props.theme.spacing.lg};
+    right: ${(props) => props.theme.spacing.lg};
+    width: 48px;
+    height: 48px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 `
 
@@ -967,11 +939,28 @@ export const ModalOverlay = styled.div<{ $isVisible: boolean; theme: Theme }>`
   padding: ${(props) => props.theme.spacing.lg};
 `
 
+export const MobileOverlay = styled.div<{ $isVisible: boolean }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1400;
+  opacity: ${(props) => (props.$isVisible ? 1 : 0)};
+  visibility: ${(props) => (props.$isVisible ? 'visible' : 'hidden')};
+  transition: all 0.3s ease;
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+`
+
 export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
   max-width: 500px;
   width: 100%;
-  ${neumorphic}
-  border-radius: ${(props) => props.theme.radii.xl};
+  ${neumorphicBase}
   padding: ${(props) => props.theme.spacing.xxl};
   position: relative;
   transform: ${(props) =>
@@ -984,8 +973,10 @@ export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
   animation: ${(props) => (props.$isVisible ? fadeIn : 'none')}
     ${durations.slow} ${easings.easeOut};
 
-  box-shadow: ${(props) => props.theme.shadows.xl},
-    ${(props) => props.theme.shadows.insetSm};
+  @media (max-width: 768px) {
+    max-width: 90%;
+    padding: ${(props) => props.theme.spacing.xl};
+  }
 `
 
 export const ModalCloseButton = styled(BaseButton)<{ theme: Theme }>`
@@ -999,43 +990,20 @@ export const ModalCloseButton = styled(BaseButton)<{ theme: Theme }>`
   align-items: center;
   justify-content: center;
   color: ${(props) => props.theme.colors.textMuted};
-  ${neumorphic}
   font-size: 18px;
   font-weight: 300;
-
-  box-shadow: ${(props) => props.theme.shadows.sm},
-    ${(props) => props.theme.shadows.insetSm};
-
-  &:hover {
-    color: ${(props) => props.theme.colors.textPrimary};
-    transform: scale(1.05);
-    box-shadow: ${(props) => props.theme.shadows.md},
-      ${(props) => props.theme.shadows.insetSm};
-  }
-
-  &:active {
-    transform: scale(0.95);
-    box-shadow: ${(props) => props.theme.shadows.insetMd};
-  }
 `
 
 export const ModalTitle = styled.h2<{ theme: Theme }>`
   font-size: 28px;
   font-weight: 700;
-  color: ${(props) => props.theme.colors.textPrimary};
+  color: ${(props) => props.theme.colors.accent};
   margin: 0 0 ${(props) => props.theme.spacing.lg} 0;
   text-align: center;
-  background: linear-gradient(
-    135deg,
-    ${(props) => props.theme.colors.accent},
-    ${(props) => props.theme.colors.accentHover}
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   animation-delay: 200ms;
   animation-fill-mode: both;
+  text-shadow: 0 0 4px ${(props) => props.theme.colors.accentGlow};
 `
 
 export const ModalContent = styled.div<{ theme: Theme }>`
@@ -1077,29 +1045,20 @@ export const ModalButton = styled(BaseButton)<{ theme: Theme }>`
   padding: ${(props) => props.theme.spacing.lg};
   font-size: 16px;
   font-weight: 600;
-  border-radius: ${(props) => props.theme.radii.lg};
   color: ${(props) => props.theme.colors.textPrimary};
-  background: linear-gradient(
-    135deg,
-    ${(props) => props.theme.colors.accent},
-    ${(props) => props.theme.colors.accentHover}
-  );
-  box-shadow: ${(props) => props.theme.shadows.md},
-    inset 1px 1px 2px rgba(255, 255, 255, 0.1);
+  background: ${(props) => props.theme.colors.accent};
+  box-shadow: ${(props) => props.theme.shadows.neu};
   animation: ${scaleIn} ${durations.normal} ${easings.spring};
   animation-delay: 600ms;
   animation-fill-mode: both;
 
   &:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: ${(props) => props.theme.shadows.lg},
-      inset 1px 1px 2px rgba(255, 255, 255, 0.15),
-      0 0 20px ${(props) => props.theme.colors.accentGlow};
+    background: ${(props) => props.theme.colors.accentHover};
+    box-shadow: ${(props) => props.theme.shadows.neuHover},
+      0 0 10px ${(props) => props.theme.colors.accentGlow};
   }
 
   &:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: ${(props) => props.theme.shadows.sm},
-      inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: ${(props) => props.theme.shadows.neuPressed};
   }
 `

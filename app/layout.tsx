@@ -2,13 +2,14 @@
 
 import StyledComponentsRegistry from './lib/registry'
 import { createGlobalStyle } from 'styled-components'
-import { Inter } from 'next/font/google'
+import { Space_Grotesk } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 
-const inter = Inter({
-  weight: ['400', '500', '600'],
+const spaceGrotesk = Space_Grotesk({
+  weight: ['300', '400', '500', '600', '700'],
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-space-grotesk',
 })
 
 const GlobalStyle = createGlobalStyle`
@@ -17,7 +18,7 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     background-color: #1e1e1e;
     color: #e0e0e0;
-    font-family: ${inter.style.fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: var(--font-space-grotesk), 'Comic Sans MS', 'Comic Sans', cursive, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 `
 
@@ -27,7 +28,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={`${spaceGrotesk.variable}`}>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
       <StyledComponentsRegistry>
         <GlobalStyle />
         <body>{children}</body>
