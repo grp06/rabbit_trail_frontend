@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShuffle, faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
 import { ThemeProvider } from 'styled-components'
 import { API_ENDPOINTS } from './config'
+import { analytics } from './lib/analytics'
 
 import {
   AppContainer,
@@ -184,6 +185,7 @@ export default function Home() {
     const hasVisitedBefore = localStorage.getItem('hasVisitedShallowResearch')
     if (!hasVisitedBefore) {
       dispatch({ type: 'SET_MODAL_VISIBLE', payload: true })
+      analytics.modalOpen()
     }
   }, [])
 
@@ -197,9 +199,11 @@ export default function Home() {
 
   const handleConcisenesChange = useCallback(
     (value: 'short' | 'medium' | 'long') => {
+      const oldValue = state.conciseness
       dispatch({ type: 'SET_CONCISENESS', payload: value })
+      analytics.concisenesChange(oldValue, value)
     },
-    []
+    [state.conciseness]
   )
 
   // Memoized getSnippet function
@@ -331,6 +335,10 @@ export default function Home() {
       includeHistory: boolean,
       isFollowUp: boolean = false
     ) => {
+      // Track the search query
+      analytics.searchQuery(message, state.conciseness)
+      const startTime = Date.now()
+
       // If this is a follow-up and we have a current result, save it to history
       if (isFollowUp && state.result && state.currentQuery) {
         const newHistoryEntry: HistoryItem = {
@@ -385,9 +393,18 @@ export default function Home() {
               { role: 'assistant', content: finalResultText },
             ],
           })
+
+          // Track response time
+          const responseTime = Date.now() - startTime
+          analytics.responseTime(message.length, responseTime)
         }
       } catch (error) {
         console.error('Error:', error)
+        // Track API errors
+        analytics.apiError(
+          '/api/openai',
+          error instanceof Error ? error.message : 'Unknown error'
+        )
         dispatch({ type: 'SET_RESULT', payload: 'Error: Something went wrong' })
         dispatch({ type: 'SET_OPTIONS', payload: [] })
       } finally {
@@ -399,7 +416,8 @@ export default function Home() {
 
   // Memoize event handlers that depend on handleOpenAI
   const handleFollowUpClick = useCallback(
-    (question: string) => {
+    (question: string, index: number) => {
+      analytics.followUpClick(question, index)
       handleOpenAI(question, true, true)
     },
     [handleOpenAI]
@@ -407,6 +425,7 @@ export default function Home() {
 
   const handleArticleItemClick = useCallback(
     (concept: string) => {
+      analytics.conceptClick(concept)
       handleOpenAI(concept, true, true)
     },
     [handleOpenAI]
@@ -453,6 +472,7 @@ export default function Home() {
   )
 
   const loadHistoryEntry = useCallback((entry: HistoryItem) => {
+    analytics.historyEntryClick(entry.queryText)
     dispatch({ type: 'LOAD_HISTORY_ENTRY', payload: entry })
   }, [])
 
@@ -513,6 +533,8 @@ export default function Home() {
   // Memoize handleRevert
   const handleRevert = useCallback(
     async (entry: HistoryItem, entryIndex: number) => {
+      analytics.revertToHistory(entry.queryText, entryIndex)
+
       // Truncate conversation history to this point
       const truncatedHistory = state.conversationHistory.slice(
         0,
@@ -534,6 +556,7 @@ export default function Home() {
 
   // Memoize handleShuffle
   const handleShuffle = useCallback(async () => {
+    analytics.shuffleQuestions()
     dispatch({ type: 'SET_LOADING', payload: true })
 
     try {
@@ -556,6 +579,10 @@ export default function Home() {
       dispatch({ type: 'SET_OPTIONS', payload: data.options || [] })
     } catch (error) {
       console.error('Error shuffling questions:', error)
+      analytics.apiError(
+        '/api/shuffle-questions',
+        error instanceof Error ? error.message : 'Unknown error'
+      )
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false })
     }
@@ -563,11 +590,19 @@ export default function Home() {
 
   // Modal handlers
   const handleCloseModal = useCallback(() => {
+    analytics.modalClose('overlay')
+    localStorage.setItem('hasVisitedShallowResearch', 'true')
+    dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })
+  }, [])
+
+  const handleCloseModalButton = useCallback(() => {
+    analytics.modalClose('button')
     localStorage.setItem('hasVisitedShallowResearch', 'true')
     dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })
   }, [])
 
   const handleGetStarted = useCallback(() => {
+    analytics.modalClose('get_started')
     localStorage.setItem('hasVisitedShallowResearch', 'true')
     dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })
   }, [])
@@ -682,7 +717,7 @@ export default function Home() {
                 {state.options.map((option, index) => (
                   <FollowUpButton
                     key={index}
-                    onClick={() => handleFollowUpClick(option)}
+                    onClick={() => handleFollowUpClick(option, index)}
                     style={{ '--index': index } as React.CSSProperties}
                   >
                     {option}
@@ -711,7 +746,13 @@ export default function Home() {
           )}
         </MainContainer>
 
-        <ThemeToggle onClick={() => dispatch({ type: 'TOGGLE_THEME' })}>
+        <ThemeToggle
+          onClick={() => {
+            const newTheme = state.isDarkMode ? 'light' : 'dark'
+            analytics.themeToggle(newTheme)
+            dispatch({ type: 'TOGGLE_THEME' })
+          }}
+        >
           <ThemeIcon $isVisible={state.isDarkMode}>
             <FontAwesomeIcon icon={faMoon} />
           </ThemeIcon>
@@ -728,7 +769,9 @@ export default function Home() {
             $isVisible={state.isModalVisible}
             onClick={(e) => e.stopPropagation()}
           >
-            <ModalCloseButton onClick={handleCloseModal}>×</ModalCloseButton>
+            <ModalCloseButton onClick={handleCloseModalButton}>
+              ×
+            </ModalCloseButton>
 
             <ModalTitle>Welcome to Shallow Research</ModalTitle>
 
