@@ -38,6 +38,7 @@ export const Sidebar = styled.aside<{ $isVisible: boolean }>`
   overflow-y: auto;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  margin-top: 80px; /* Add spacing from top - adjust this value as needed */
 
   /* Neumorphic inset effect for sidebar */
   box-shadow: inset 8px 0 16px ${colors.shadowDark},
@@ -122,45 +123,6 @@ export const CenteredInput = styled.input`
 
   &:hover:not(:focus) {
     background: linear-gradient(145deg, #191919, ${colors.darkBase});
-  }
-`
-
-export const SpeakerButton = styled.button`
-  width: 48px;
-  height: 48px;
-  margin-left: 4px;
-  font-size: 16px;
-  font-family: inherit;
-  color: ${colors.textSecondary};
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* Convex neumorphic effect */
-  background: linear-gradient(145deg, ${colors.darkRaised}, ${colors.darkBase});
-  box-shadow: 6px 6px 12px ${colors.shadowDark},
-    -6px -6px 12px ${colors.shadowLight},
-    inset 1px 1px 2px ${colors.shadowLight},
-    inset -1px -1px 2px ${colors.shadowAmbient};
-
-  &:hover {
-    color: ${colors.textPrimary};
-    background: linear-gradient(145deg, #2a2a2e, ${colors.darkRaised});
-    box-shadow: 8px 8px 16px ${colors.shadowDark},
-      -8px -8px 16px ${colors.shadowLight},
-      inset 2px 2px 4px ${colors.shadowLight},
-      inset -2px -2px 4px ${colors.shadowAmbient};
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: inset 6px 6px 12px ${colors.shadowDark},
-      inset -6px -6px 12px ${colors.shadowLight};
   }
 `
 
@@ -410,7 +372,7 @@ export const HistorySnippet = styled.div`
   text-overflow: ellipsis;
 `
 
-export const ExpandButton = styled.button`
+export const RevertButton = styled.button`
   background: none;
   border: none;
   color: ${colors.accent};
@@ -434,20 +396,10 @@ export const ExpandButton = styled.button`
       inset -2px -2px 4px ${colors.shadowLight};
     color: ${colors.textPrimary};
   }
-`
 
-export const ExpandedContent = styled.div`
-  margin-top: 0.75rem;
-  padding: 1rem;
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: ${colors.textSecondary};
-
-  /* Inset neumorphic effect */
-  background: linear-gradient(145deg, ${colors.darkInset}, ${colors.darkBase});
-  box-shadow: inset 4px 4px 8px ${colors.shadowDark},
-    inset -4px -4px 8px ${colors.shadowLight};
+  &:active {
+    color: ${colors.accentHover};
+  }
 `
 
 export const ConcisenessSidebar = styled.div`
