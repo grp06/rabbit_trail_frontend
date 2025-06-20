@@ -41,6 +41,8 @@ import {
   MobileMenuButton,
   LoadingIndicator,
   StreamingIndicator,
+  StreamingContainer,
+  TypewriterText,
   ThemeToggle,
   ThemeIcon,
   ModalOverlay,
@@ -174,6 +176,10 @@ interface AppState {
   isModalVisible: boolean
   showSuggestedQuestions: boolean
   suggestedQuestions: string[]
+  // Typewriter animation state
+  isStreaming: boolean
+  streamBuffer: string
+  displayedText: string
 }
 
 // Action types
@@ -193,6 +199,10 @@ type AppAction =
   | { type: 'SET_MODAL_VISIBLE'; payload: boolean }
   | { type: 'HIDE_SUGGESTED_QUESTIONS' }
   | { type: 'SET_SUGGESTED_QUESTIONS'; payload: string[] }
+  | { type: 'SET_STREAMING'; payload: boolean }
+  | { type: 'UPDATE_STREAM_BUFFER'; payload: string }
+  | { type: 'UPDATE_DISPLAYED_TEXT'; payload: string }
+  | { type: 'RESET_STREAMING' }
   | {
       type: 'ADD_CONVERSATION_HISTORY'
       payload: { role: string; content: string }[]
@@ -257,6 +267,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, showSuggestedQuestions: false }
     case 'SET_SUGGESTED_QUESTIONS':
       return { ...state, suggestedQuestions: action.payload }
+    case 'SET_STREAMING':
+      return { ...state, isStreaming: action.payload }
+    case 'UPDATE_STREAM_BUFFER':
+      return { ...state, streamBuffer: action.payload }
+    case 'UPDATE_DISPLAYED_TEXT':
+      return { ...state, displayedText: action.payload }
+    case 'RESET_STREAMING':
+      return {
+        ...state,
+        isStreaming: false,
+        streamBuffer: '',
+        displayedText: '',
+      }
     case 'ADD_CONVERSATION_HISTORY':
       return {
         ...state,
@@ -278,6 +301,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
         result: '',
         options: [],
         explorableConcepts: [],
+        isStreaming: false,
+        streamBuffer: '',
+        displayedText: '',
       }
     default:
       return state
@@ -301,10 +327,115 @@ const initialState: AppState = {
   isModalVisible: false,
   showSuggestedQuestions: true,
   suggestedQuestions: [], // Start with empty array to avoid hydration mismatch
+  isStreaming: false,
+  streamBuffer: '',
+  displayedText: '',
 }
 
 export default function Home() {
   const [state, dispatch] = useReducer(appReducer, initialState)
+
+  // Calculate realistic typing delay based on character and context
+  const getTypingDelay = useCallback(
+    (char: string, previousChar: string = '', index: number = 0) => {
+      const baseDelay = 3 // Very fast base speed
+
+      // Longer pauses after sentence-ending punctuation
+      if (
+        previousChar === '.' ||
+        previousChar === '!' ||
+        previousChar === '?'
+      ) {
+        return baseDelay + Math.random() * 8 + 12 // 15-23ms pause after sentences
+      }
+
+      // Medium pause after commas, semicolons, colons
+      if (
+        previousChar === ',' ||
+        previousChar === ';' ||
+        previousChar === ':'
+      ) {
+        return baseDelay + Math.random() * 4 + 6 // 9-13ms pause
+      }
+
+      // Slight pause after spaces (between words)
+      if (previousChar === ' ') {
+        return baseDelay + Math.random() * 3 + 2 // 5-8ms pause
+      }
+
+      // Occasional micro-hesitations (every 15-25 characters on average)
+      if (Math.random() < 0.05) {
+        // 5% chance
+        return baseDelay + Math.random() * 4 + 3 // 6-10ms micro-pause
+      }
+
+      // Regular character with slight randomization
+      return baseDelay + Math.random() * 2 // 3-5ms normal speed
+    },
+    []
+  )
+
+  // Typewriter animation effect
+  React.useEffect(() => {
+    if (!state.isStreaming || !state.streamBuffer) return
+
+    const targetText = state.streamBuffer
+    const currentLength = state.displayedText.length
+
+    if (currentLength < targetText.length) {
+      const nextChar = targetText[currentLength]
+      const previousChar =
+        currentLength > 0 ? targetText[currentLength - 1] : ''
+
+      const timer = setTimeout(() => {
+        const newDisplayedText = state.displayedText + nextChar
+        dispatch({ type: 'UPDATE_DISPLAYED_TEXT', payload: newDisplayedText })
+      }, getTypingDelay(nextChar, previousChar, currentLength))
+
+      return () => clearTimeout(timer)
+    } else if (currentLength === targetText.length && state.isStreaming) {
+      // When typewriter catches up and we're still streaming, sync the result
+      dispatch({ type: 'SET_RESULT', payload: state.displayedText })
+    }
+  }, [
+    state.isStreaming,
+    state.streamBuffer,
+    state.displayedText,
+    getTypingDelay,
+  ])
+
+  // Handle smooth transition when streaming stops
+  React.useEffect(() => {
+    if (
+      !state.isStreaming &&
+      state.streamBuffer &&
+      state.displayedText.length < state.streamBuffer.length
+    ) {
+      // Streaming stopped but typewriter hasn't caught up - let it finish
+      const nextChar = state.streamBuffer[state.displayedText.length]
+      const previousChar =
+        state.displayedText.length > 0
+          ? state.displayedText[state.displayedText.length - 1]
+          : ''
+
+      const timer = setTimeout(() => {
+        const newDisplayedText = state.displayedText + nextChar
+        dispatch({ type: 'UPDATE_DISPLAYED_TEXT', payload: newDisplayedText })
+
+        // If we've caught up, set the final result
+        if (newDisplayedText.length === state.streamBuffer.length) {
+          dispatch({ type: 'SET_RESULT', payload: newDisplayedText })
+        }
+      }, getTypingDelay(nextChar, previousChar, state.displayedText.length))
+
+      return () => clearTimeout(timer)
+    }
+  }, [
+    state.isStreaming,
+    state.streamBuffer,
+    state.displayedText,
+    getTypingDelay,
+  ])
 
   // Initialize suggested questions on component mount
   React.useEffect(() => {
@@ -394,18 +525,23 @@ export default function Home() {
                 switch (data.type) {
                   case 'text_delta':
                     streamedResult += data.content
-                    dispatch({ type: 'SET_RESULT', payload: streamedResult })
+                    // Update stream buffer for typewriter effect
+                    dispatch({
+                      type: 'UPDATE_STREAM_BUFFER',
+                      payload: streamedResult,
+                    })
                     break
 
                   case 'complete':
                     finalResponse = data.data
+                    // Ensure final result is complete
                     if (
                       Math.abs(
                         streamedResult.length - data.data.answer.length
                       ) > 10
                     ) {
                       dispatch({
-                        type: 'SET_RESULT',
+                        type: 'UPDATE_STREAM_BUFFER',
                         payload: data.data.answer,
                       })
                     }
@@ -485,6 +621,7 @@ export default function Home() {
       dispatch({ type: 'SET_CURRENT_QUERY', payload: message })
       dispatch({ type: 'SET_LOADING', payload: true })
       dispatch({ type: 'RESET_QUERY_STATE' })
+      dispatch({ type: 'RESET_STREAMING' })
 
       try {
         const response = await fetch(API_ENDPOINTS.openai, {
@@ -510,12 +647,18 @@ export default function Home() {
           throw new Error('No response body')
         }
 
+        // Start streaming animation
+        dispatch({ type: 'SET_STREAMING', payload: true })
+
         const { finalResponse, streamedResult } = await processStreamResponse(
           reader
         )
 
-        // Update conversation history
+        // Stop streaming animation - let typewriter finish naturally
+        dispatch({ type: 'SET_STREAMING', payload: false })
         const finalResultText = finalResponse?.answer || streamedResult
+
+        // Update conversation history
         if (finalResultText) {
           dispatch({
             type: 'ADD_CONVERSATION_HISTORY',
@@ -538,6 +681,7 @@ export default function Home() {
         )
         dispatch({ type: 'SET_RESULT', payload: 'Error: Something went wrong' })
         dispatch({ type: 'SET_OPTIONS', payload: [] })
+        dispatch({ type: 'RESET_STREAMING' })
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }
@@ -884,24 +1028,38 @@ export default function Home() {
             <CurrentQuery>{state.currentQuery}</CurrentQuery>
           )}
 
-          {(state.result || state.isLoading) && (
+          {(state.result || state.isLoading || state.isStreaming) && (
             <Result>
-              {state.isLoading && !state.result ? (
-                <LoadingIndicator>
-                  Thinking
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </LoadingIndicator>
-              ) : (
-                <>
-                  {renderResultWithHighlights(
-                    state.result,
-                    state.explorableConcepts
-                  )}
-                  {state.isLoading && state.result && <StreamingIndicator />}
-                </>
-              )}
+              <StreamingContainer>
+                {state.isLoading && !state.result && !state.isStreaming ? (
+                  <LoadingIndicator>
+                    Thinking
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </LoadingIndicator>
+                ) : (
+                  <>
+                    {state.isStreaming ||
+                    (state.streamBuffer &&
+                      state.displayedText.length <
+                        state.streamBuffer.length) ? (
+                      <TypewriterText>
+                        {renderResultWithHighlights(
+                          state.displayedText,
+                          state.explorableConcepts
+                        )}
+                        {state.isStreaming && <StreamingIndicator />}
+                      </TypewriterText>
+                    ) : (
+                      renderResultWithHighlights(
+                        state.result,
+                        state.explorableConcepts
+                      )
+                    )}
+                  </>
+                )}
+              </StreamingContainer>
             </Result>
           )}
 

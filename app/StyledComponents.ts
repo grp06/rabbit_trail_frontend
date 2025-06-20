@@ -325,8 +325,8 @@ export const MainContainer = styled.main<{ theme: Theme }>`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8vh ${(props) => props.theme.spacing.xl}
-    ${(props) => props.theme.spacing.lg};
+  padding: calc(80px + ${(props) => props.theme.spacing.sm})
+    ${(props) => props.theme.spacing.xl} ${(props) => props.theme.spacing.sm};
   flex: 1;
   color: ${(props) => props.theme.colors.textSecondary};
   max-width: 100%;
@@ -334,8 +334,8 @@ export const MainContainer = styled.main<{ theme: Theme }>`
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: calc(60px + ${(props) => props.theme.spacing.md})
-      ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.sm};
+    padding: calc(60px + ${(props) => props.theme.spacing.sm})
+      ${(props) => props.theme.spacing.sm} ${(props) => props.theme.spacing.xs};
   }
 `
 
@@ -344,12 +344,12 @@ export const InputContainer = styled(BaseCard)<{ theme: Theme }>`
   max-width: 800px;
   display: flex;
   align-items: center;
-  margin-bottom: ${(props) => props.theme.spacing.lg};
+  margin-bottom: ${(props) => props.theme.spacing.sm};
   padding: 4px;
 
   @media (max-width: 768px) {
     width: 95%;
-    margin-bottom: ${(props) => props.theme.spacing.sm};
+    margin-bottom: ${(props) => props.theme.spacing.xs};
   }
 `
 
@@ -391,12 +391,12 @@ export const CenteredInput = styled.input<{ theme: Theme }>`
 export const Result = styled(BaseCard)<{ theme: Theme }>`
   text-align: left;
   font-size: 18px;
-  margin: ${(props) => props.theme.spacing.md} 0;
+  margin: ${(props) => props.theme.spacing.sm} 0;
   width: 90%;
   max-width: 800px;
   line-height: 1.7;
   color: ${(props) => props.theme.colors.textSecondary};
-  padding: ${(props) => props.theme.spacing.xl};
+  padding: ${(props) => props.theme.spacing.lg};
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   word-spacing: 0.05em;
   letter-spacing: 0.01em;
@@ -411,7 +411,7 @@ export const Result = styled(BaseCard)<{ theme: Theme }>`
   @media (max-width: 768px) {
     width: 95%;
     font-size: 16px;
-    padding: ${(props) => props.theme.spacing.md};
+    padding: ${(props) => props.theme.spacing.sm};
     margin: ${(props) => props.theme.spacing.xs} 0;
     line-height: 1.6;
   }
@@ -422,13 +422,13 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
   font-size: 20px;
   font-weight: 600;
   color: ${(props) => props.theme.colors.accent};
-  margin: ${(props) => props.theme.spacing.lg} 0
-    ${(props) => props.theme.spacing.sm};
+  margin: ${(props) => props.theme.spacing.sm} 0
+    ${(props) => props.theme.spacing.md};
   width: 90%;
   max-width: 800px;
   line-height: 1.4;
-  padding: ${(props) => props.theme.spacing.md}
-    ${(props) => props.theme.spacing.lg};
+  padding: ${(props) => props.theme.spacing.sm}
+    ${(props) => props.theme.spacing.md};
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   position: relative;
 
@@ -447,27 +447,27 @@ export const CurrentQuery = styled(BaseCard)<{ theme: Theme }>`
   @media (max-width: 768px) {
     width: 95%;
     font-size: 18px;
-    margin: ${(props) => props.theme.spacing.sm} 0
-      ${(props) => props.theme.spacing.xs};
-    padding: ${(props) => props.theme.spacing.sm}
-      ${(props) => props.theme.spacing.md};
+    margin: ${(props) => props.theme.spacing.xs} 0
+      ${(props) => props.theme.spacing.sm};
+    padding: ${(props) => props.theme.spacing.xs}
+      ${(props) => props.theme.spacing.sm};
   }
 `
 
 export const ButtonContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: ${(props) => props.theme.spacing.md};
+  gap: ${(props) => props.theme.spacing.sm};
   width: 90%;
   max-width: 800px;
-  margin: ${(props) => props.theme.spacing.lg} 0;
+  margin: ${(props) => props.theme.spacing.sm} 0;
   padding: 0;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     width: 95%;
     gap: ${(props) => props.theme.spacing.xs};
-    margin: ${(props) => props.theme.spacing.sm} 0;
+    margin: ${(props) => props.theme.spacing.xs} 0;
   }
 `
 
@@ -864,13 +864,47 @@ export const StreamingIndicator = styled.span<{ theme: Theme }>`
   width: 2px;
   height: 1em;
   background: ${(props) => props.theme.colors.accent};
-  margin-left: 0.1em;
-  animation: ${pulse} 1s ${easings.easeInOut} infinite;
+  margin-left: 0.2em;
+  animation: ${pulse} 0.8s ${easings.easeInOut} infinite;
   vertical-align: baseline;
-  opacity: 0.8;
+  opacity: 1;
   line-height: 0;
   position: relative;
   top: 0.1em;
+  border-radius: 1px;
+  box-shadow: 0 0 4px ${(props) => props.theme.colors.accentGlow};
+`
+
+export const TypewriterText = styled.span<{ theme: Theme }>`
+  position: relative;
+
+  .streaming-word {
+    opacity: 0;
+    animation: ${fadeIn} 0.3s ${easings.easeOut} forwards;
+  }
+
+  .streaming-char {
+    opacity: 0;
+    animation: ${fadeIn} 0.1s ${easings.easeOut} forwards;
+  }
+`
+
+export const StreamingContainer = styled.div<{ theme: Theme }>`
+  position: relative;
+
+  .word-fade-in {
+    animation: ${fadeIn} 0.4s ${easings.easeOut} forwards;
+  }
+
+  .char-fade-in {
+    animation: ${fadeIn} 0.08s ${easings.easeOut} forwards;
+    animation-fill-mode: both;
+  }
+
+  .smooth-glow {
+    text-shadow: 0 0 8px ${(props) => props.theme.colors.accentGlow};
+    animation: ${glowPulse} 2s ${easings.easeInOut} infinite;
+  }
 `
 
 export const ThemeToggle = styled(BaseButton)<{ theme: Theme }>`
