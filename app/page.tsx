@@ -546,7 +546,7 @@ export default function Home() {
       <AppContainer>
         <NavigationHeader>
           <NavigationContainer>
-            <Logo>Rabbit Trail</Logo>
+            <Logo>Shallow Research</Logo>
           </NavigationContainer>
         </NavigationHeader>
 
