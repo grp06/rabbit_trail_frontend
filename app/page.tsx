@@ -1,14 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faVolumeUp,
-  faVolumeOff,
-  faImage,
   faShuffle,
 } from '@fortawesome/free-solid-svg-icons'
-import Image from 'next/image'
 
 import {
   AppContainer,
@@ -21,7 +17,6 @@ import {
   ButtonContainer,
   FollowUpButton,
   ShuffleButton,
-  SpeakerButton,
   HighlightedText,
   HistoryEntry,
   HistoryQuery,
@@ -46,7 +41,6 @@ interface HistoryItem {
   responseText: string
   suggestedFollowups: string[]
   explorableConcepts: string[]
-  imageUrl?: string
   isExpanded: boolean
 }
 
@@ -59,9 +53,6 @@ export default function Home() {
   >([])
   const [explorableConcepts, setExplorableConcepts] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isSoundOn, setIsSoundOn] = useState(false)
-  const [imageUrl, setImageUrl] = useState('')
-  const [isImageOn, setIsImageOn] = useState(false)
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
   const [historyEntries, setHistoryEntries] = useState<HistoryItem[]>([])
   const [currentQuery, setCurrentQuery] = useState('')
@@ -83,7 +74,6 @@ export default function Home() {
         responseText: result,
         suggestedFollowups: options,
         explorableConcepts: explorableConcepts,
-        imageUrl: imageUrl,
         isExpanded: false,
       }
       setHistoryEntries([newHistoryEntry, ...historyEntries])
@@ -105,7 +95,6 @@ export default function Home() {
         body: JSON.stringify({
           message: message,
           conversation_history: includeHistory ? conversationHistory : [],
-          generate_audio: isSoundOn,
           conciseness: conciseness,
         }),
       })
@@ -167,36 +156,11 @@ export default function Home() {
                     }
                     setOptions(data.data.options || [])
                     setExplorableConcepts(data.data.explorable_concepts || [])
-                    setImageUrl(data.data.image_url || '')
-                    break
-
-                  case 'audio':
-                    if (isSoundOn) {
-                      // Play audio
-                      const audioBlob = new Blob(
-                        [
-                          Uint8Array.from(atob(data.data), (c) =>
-                            c.charCodeAt(0)
-                          ),
-                        ],
-                        { type: 'audio/mpeg' }
-                      )
-                      const audioUrl = URL.createObjectURL(audioBlob)
-                      const audio = new Audio(audioUrl)
-                      audio.play()
-                      audio.addEventListener('ended', () => {
-                        URL.revokeObjectURL(audioUrl)
-                      })
-                    }
                     break
 
                   case 'error':
                     console.error('Stream error:', data.message)
                     setResult('Error: ' + data.message)
-                    break
-
-                  case 'audio_error':
-                    console.warn('Audio generation failed:', data.message)
                     break
 
                   case 'end':
@@ -273,10 +237,6 @@ export default function Home() {
     }
   }
 
-  const toggleSound = () => {
-    setIsSoundOn(!isSoundOn)
-  }
-
   const handleArticleItemClick = (concept: string) => {
     handleOpenAI(concept, true, true)
   }
@@ -299,10 +259,6 @@ export default function Home() {
     )
   }
 
-  const toggleImage = () => {
-    setIsImageOn(!isImageOn)
-  }
-
   const toggleHistoryExpand = (index: number) => {
     setHistoryEntries((prev) =>
       prev.map((entry, i) =>
@@ -316,7 +272,6 @@ export default function Home() {
     setResult(entry.responseText)
     setOptions(entry.suggestedFollowups)
     setExplorableConcepts(entry.explorableConcepts)
-    setImageUrl(entry.imageUrl || '')
   }
 
   const getSnippet = (text: string) => {
@@ -414,27 +369,18 @@ export default function Home() {
       </ConcisenessSidebar>
 
       <Sidebar $isVisible={isSidebarVisible}>
+        {/* History entries */}
         {historyEntries.map((entry, index) => (
           <HistoryEntry key={index}>
-            <div onClick={() => loadHistoryEntry(entry)}>
-              <HistoryQuery>{entry.queryText}</HistoryQuery>
-              <HistorySnippet>{getSnippet(entry.responseText)}</HistorySnippet>
-            </div>
-            <ExpandButton
-              onClick={(e) => {
-                e.stopPropagation()
-                toggleHistoryExpand(index)
-              }}
-            >
+            <HistoryQuery onClick={() => loadHistoryEntry(entry)}>
+              {entry.queryText}
+            </HistoryQuery>
+            <HistorySnippet>{getSnippet(entry.responseText)}</HistorySnippet>
+            <ExpandButton onClick={() => toggleHistoryExpand(index)}>
               {entry.isExpanded ? 'Collapse' : 'Expand'}
             </ExpandButton>
             {entry.isExpanded && (
-              <ExpandedContent>
-                {renderResultWithHighlights(
-                  entry.responseText,
-                  entry.explorableConcepts
-                )}
-              </ExpandedContent>
+              <ExpandedContent>{entry.responseText}</ExpandedContent>
             )}
           </HistoryEntry>
         ))}
@@ -453,15 +399,6 @@ export default function Home() {
               onChange={(e) => setInputText(e.target.value)}
               disabled={isLoading}
             />
-            <SpeakerButton type="button" onClick={toggleSound}>
-              <FontAwesomeIcon icon={isSoundOn ? faVolumeUp : faVolumeOff} />
-            </SpeakerButton>
-            <SpeakerButton type="button" onClick={toggleImage}>
-              <FontAwesomeIcon
-                icon={faImage}
-                style={{ opacity: isImageOn ? 1 : 0.5 }}
-              />
-            </SpeakerButton>
             <button type="submit" style={{ display: 'none' }} />
           </form>
         </InputContainer>
@@ -507,16 +444,6 @@ export default function Home() {
               </ShuffleButton>
             </div>
           </>
-        )}
-
-        {imageUrl && isImageOn && (
-          <Image
-            src={imageUrl}
-            alt="Generated"
-            width={1024}
-            height={1024}
-            style={{ maxWidth: '100%', height: 'auto' }}
-          />
         )}
       </MainContainer>
     </AppContainer>

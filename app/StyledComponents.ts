@@ -125,45 +125,6 @@ export const CenteredInput = styled.input`
   }
 `
 
-export const SpeakerButton = styled.button`
-  width: 48px;
-  height: 48px;
-  margin-left: 4px;
-  font-size: 16px;
-  font-family: inherit;
-  color: ${colors.textSecondary};
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* Convex neumorphic effect */
-  background: linear-gradient(145deg, ${colors.darkRaised}, ${colors.darkBase});
-  box-shadow: 6px 6px 12px ${colors.shadowDark},
-    -6px -6px 12px ${colors.shadowLight},
-    inset 1px 1px 2px ${colors.shadowLight},
-    inset -1px -1px 2px ${colors.shadowAmbient};
-
-  &:hover {
-    color: ${colors.textPrimary};
-    background: linear-gradient(145deg, #2a2a2e, ${colors.darkRaised});
-    box-shadow: 8px 8px 16px ${colors.shadowDark},
-      -8px -8px 16px ${colors.shadowLight},
-      inset 2px 2px 4px ${colors.shadowLight},
-      inset -2px -2px 4px ${colors.shadowAmbient};
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: inset 6px 6px 12px ${colors.shadowDark},
-      inset -6px -6px 12px ${colors.shadowLight};
-  }
-`
-
 export const Result = styled.div`
   text-align: left;
   font-size: 18px;
