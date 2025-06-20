@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Shallow Research - AI-Powered Research & Discovery',
+  title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
   description:
     'Dive into fascinating rabbit holes with intelligent follow-up questions. Shallow Research helps you explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
   keywords: [
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://shallowresearch.app', // Update this to your actual domain
     siteName: 'Shallow Research',
-    title: 'Shallow Research - AI-Powered Research & Discovery',
+    title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
     description:
       'Dive into fascinating rabbit holes with intelligent follow-up questions. Explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
     images: [
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
         url: '/mag-glass.png',
         width: 1200,
         height: 630,
-        alt: 'Shallow Research - AI-Powered Research & Discovery',
+        alt: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
         type: 'image/png',
       },
     ],
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@shallowresearch', // Update this to your Twitter handle if you have one
     creator: '@shallowresearch', // Update this to your Twitter handle
-    title: 'Shallow Research - AI-Powered Research & Discovery',
+    title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
     description:
       'Dive into fascinating rabbit holes with intelligent follow-up questions. Perfect for curious minds who love exploring tangents.',
     images: ['/mag-glass.png'],
