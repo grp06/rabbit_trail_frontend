@@ -21,14 +21,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://shallowresearch.app', // Update this to your actual domain
+    url: 'https://shallowresearch.vercel.app', // Updated to match your actual domain
     siteName: 'Shallow Research',
     title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
     description:
       'Dive into fascinating rabbit holes with intelligent follow-up questions. Explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
     images: [
       {
-        url: '/mag-glass.png',
+        url: 'https://shallowresearch.vercel.app/mag-glass.png',
         width: 1200,
         height: 630,
         alt: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
     description:
       'Dive into fascinating rabbit holes with intelligent follow-up questions. Perfect for curious minds who love exploring tangents.',
-    images: ['/mag-glass.png'],
+    images: ['https://shallowresearch.vercel.app/mag-glass.png'],
   },
 
   // Additional metadata
