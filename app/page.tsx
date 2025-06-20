@@ -1,15 +1,9 @@
 'use client'
 
-import React, {
-  useState,
-  useReducer,
-  useCallback,
-  useMemo,
-  useRef,
-  useEffect,
-} from 'react'
+import React, { useState, useReducer, useCallback, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShuffle } from '@fortawesome/free-solid-svg-icons'
+import { faShuffle, faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
+import { ThemeProvider } from 'styled-components'
 import { API_ENDPOINTS } from './config'
 
 import {
@@ -39,6 +33,12 @@ import {
   Logo,
   NavigationLinks,
   NavigationLink,
+  LoadingIndicator,
+  StreamingIndicator,
+  ThemeToggle,
+  ThemeIcon,
+  lightTheme,
+  darkTheme,
 } from './StyledComponents'
 
 interface HistoryItem {
@@ -62,6 +62,7 @@ interface AppState {
   currentQuery: string
   conciseness: 'short' | 'medium' | 'long'
   isDragging: boolean
+  isDarkMode: boolean
 }
 
 // Action types
@@ -77,6 +78,7 @@ type AppAction =
   | { type: 'SET_CURRENT_QUERY'; payload: string }
   | { type: 'SET_CONCISENESS'; payload: 'short' | 'medium' | 'long' }
   | { type: 'SET_DRAGGING'; payload: boolean }
+  | { type: 'TOGGLE_THEME' }
   | {
       type: 'ADD_CONVERSATION_HISTORY'
       payload: { role: string; content: string }[]
@@ -117,6 +119,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, conciseness: action.payload }
     case 'SET_DRAGGING':
       return { ...state, isDragging: action.payload }
+    case 'TOGGLE_THEME':
+      return { ...state, isDarkMode: !state.isDarkMode }
     case 'ADD_CONVERSATION_HISTORY':
       return {
         ...state,
@@ -157,27 +161,11 @@ const initialState: AppState = {
   currentQuery: '',
   conciseness: 'short',
   isDragging: false,
+  isDarkMode: true,
 }
 
 export default function Home() {
   const [state, dispatch] = useReducer(appReducer, initialState)
-
-  // Add refs for abort controllers
-  const abortControllerRef = useRef<AbortController | null>(null)
-  const shuffleAbortControllerRef = useRef<AbortController | null>(null)
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Cancel any ongoing requests when component unmounts
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-      if (shuffleAbortControllerRef.current) {
-        shuffleAbortControllerRef.current.abort()
-      }
-    }
-  }, [])
 
   // Memoized callbacks to prevent recreation on every render
   const handleInputChange = useCallback(
@@ -222,10 +210,7 @@ export default function Home() {
 
   // Extract streaming logic to a separate function
   const processStreamResponse = useCallback(
-    async (
-      reader: ReadableStreamDefaultReader<Uint8Array>,
-      signal: AbortSignal
-    ) => {
+    async (reader: ReadableStreamDefaultReader<Uint8Array>) => {
       const decoder = new TextDecoder()
       let buffer = ''
       let finalResponse: any = null
@@ -233,11 +218,6 @@ export default function Home() {
 
       try {
         while (true) {
-          // Check if aborted
-          if (signal.aborted) {
-            break
-          }
-
           const { done, value } = await reader.read()
           if (done) break
 
@@ -262,71 +242,61 @@ export default function Home() {
                 switch (data.type) {
                   case 'text_delta':
                     streamedResult += data.content
-                    // Only update state if not aborted
-                    if (!signal.aborted) {
-                      dispatch({ type: 'SET_RESULT', payload: streamedResult })
-                    }
+                    dispatch({ type: 'SET_RESULT', payload: streamedResult })
                     break
 
                   case 'complete':
                     finalResponse = data.data
-                    if (!signal.aborted) {
-                      if (
-                        Math.abs(
-                          streamedResult.length - data.data.answer.length
-                        ) > 10
-                      ) {
-                        dispatch({
-                          type: 'SET_RESULT',
-                          payload: data.data.answer,
-                        })
-                      }
+                    if (
+                      Math.abs(
+                        streamedResult.length - data.data.answer.length
+                      ) > 10
+                    ) {
                       dispatch({
-                        type: 'SET_OPTIONS',
-                        payload: data.data.options || [],
-                      })
-                      dispatch({
-                        type: 'SET_EXPLORABLE_CONCEPTS',
-                        payload: data.data.explorable_concepts || [],
+                        type: 'SET_RESULT',
+                        payload: data.data.answer,
                       })
                     }
+                    dispatch({
+                      type: 'SET_OPTIONS',
+                      payload: data.data.options || [],
+                    })
+                    dispatch({
+                      type: 'SET_EXPLORABLE_CONCEPTS',
+                      payload: data.data.explorable_concepts || [],
+                    })
                     break
 
                   case 'error':
-                    if (!signal.aborted) {
-                      console.error('Stream error:', data.message)
-                      dispatch({
-                        type: 'SET_RESULT',
-                        payload: 'Error: ' + data.message,
-                      })
-                    }
+                    console.error('Stream error:', data.message)
+                    dispatch({
+                      type: 'SET_RESULT',
+                      payload: 'Error: ' + data.message,
+                    })
                     break
 
                   case 'end':
                     break
                 }
               } catch (parseError) {
-                if (!signal.aborted) {
-                  console.warn('Failed to parse SSE data:', dataContent)
-                }
+                console.warn('Failed to parse SSE data:', dataContent)
               }
             }
           }
         }
       } catch (error) {
-        // Only log errors if not due to abort
-        if (
-          !signal.aborted &&
-          error instanceof Error &&
-          error.name !== 'AbortError'
-        ) {
-          console.error('Stream processing error:', error)
+        // Silently handle read errors which often occur when connection is closed
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.debug(
+            'Stream read error (likely connection closed):',
+            error.message
+          )
         }
       } finally {
         try {
           reader.releaseLock()
         } catch (e) {
-          // Ignore errors when releasing lock (stream might already be closed)
+          // Ignore errors when releasing lock
         }
       }
 
@@ -341,15 +311,6 @@ export default function Home() {
       includeHistory: boolean,
       isFollowUp: boolean = false
     ) => {
-      // Cancel any existing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
-
-      // Create new abort controller for this request
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
-
       // If this is a follow-up and we have a current result, save it to history
       if (isFollowUp && state.result && state.currentQuery) {
         const newHistoryEntry: HistoryItem = {
@@ -379,7 +340,6 @@ export default function Home() {
               : [],
             conciseness: state.conciseness,
           }),
-          signal: abortController.signal,
         })
 
         if (!response.ok) {
@@ -392,46 +352,26 @@ export default function Home() {
         }
 
         const { finalResponse, streamedResult } = await processStreamResponse(
-          reader,
-          abortController.signal
+          reader
         )
 
-        // Update conversation history only if not aborted
-        if (!abortController.signal.aborted) {
-          const finalResultText = finalResponse?.answer || streamedResult
-          if (finalResultText) {
-            dispatch({
-              type: 'ADD_CONVERSATION_HISTORY',
-              payload: [
-                { role: 'user', content: message },
-                { role: 'assistant', content: finalResultText },
-              ],
-            })
-          }
+        // Update conversation history
+        const finalResultText = finalResponse?.answer || streamedResult
+        if (finalResultText) {
+          dispatch({
+            type: 'ADD_CONVERSATION_HISTORY',
+            payload: [
+              { role: 'user', content: message },
+              { role: 'assistant', content: finalResultText },
+            ],
+          })
         }
       } catch (error) {
-        // Handle abort errors silently
-        if (error instanceof Error) {
-          if (error.name === 'AbortError' || abortController.signal.aborted) {
-            // Request was aborted, no need to show error
-            console.log('Request aborted')
-          } else {
-            console.error('Error:', error)
-            dispatch({
-              type: 'SET_RESULT',
-              payload: 'Error: Something went wrong',
-            })
-            dispatch({ type: 'SET_OPTIONS', payload: [] })
-          }
-        }
+        console.error('Error:', error)
+        dispatch({ type: 'SET_RESULT', payload: 'Error: Something went wrong' })
+        dispatch({ type: 'SET_OPTIONS', payload: [] })
       } finally {
-        // Only clear loading state if this request wasn't aborted
-        if (
-          abortControllerRef.current === abortController &&
-          !abortController.signal.aborted
-        ) {
-          dispatch({ type: 'SET_LOADING', payload: false })
-        }
+        dispatch({ type: 'SET_LOADING', payload: false })
       }
     },
     [state, processStreamResponse]
@@ -455,7 +395,25 @@ export default function Home() {
   // Optimized renderResultWithHighlights using memoization
   const renderResultWithHighlights = useCallback(
     (text: string, highlights: string[]) => {
-      if (highlights.length === 0) return text
+      if (!text) return null
+
+      // If no highlights yet, wrap potential highlight words in spans to reserve space
+      if (highlights.length === 0) {
+        // Split by word boundaries but keep the delimiters
+        const words = text.split(/(\s+)/)
+        return words.map((word, index) => {
+          // Check if this is a whitespace
+          if (/^\s+$/.test(word)) {
+            return word
+          }
+          // Wrap non-whitespace words in spans to maintain consistent rendering
+          return (
+            <span key={index} style={{ display: 'inline' }}>
+              {word}
+            </span>
+          )
+        })
+      }
 
       const parts = highlightRegex ? text.split(highlightRegex) : [text]
       return parts.map((part, index) =>
@@ -556,14 +514,6 @@ export default function Home() {
 
   // Memoize handleShuffle
   const handleShuffle = useCallback(async () => {
-    // Cancel any existing shuffle request
-    if (shuffleAbortControllerRef.current) {
-      shuffleAbortControllerRef.current.abort()
-    }
-
-    const abortController = new AbortController()
-    shuffleAbortControllerRef.current = abortController
-
     dispatch({ type: 'SET_LOADING', payload: true })
 
     try {
@@ -576,7 +526,6 @@ export default function Home() {
           conversation_history: state.conversationHistory,
           current_topic: state.currentQuery,
         }),
-        signal: abortController.signal,
       })
 
       if (!response.ok) {
@@ -584,149 +533,162 @@ export default function Home() {
       }
 
       const data = await response.json()
-      if (!abortController.signal.aborted) {
-        dispatch({ type: 'SET_OPTIONS', payload: data.options || [] })
-      }
+      dispatch({ type: 'SET_OPTIONS', payload: data.options || [] })
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.error('Error shuffling questions:', error)
-      }
+      console.error('Error shuffling questions:', error)
     } finally {
-      if (
-        shuffleAbortControllerRef.current === abortController &&
-        !abortController.signal.aborted
-      ) {
-        dispatch({ type: 'SET_LOADING', payload: false })
-      }
+      dispatch({ type: 'SET_LOADING', payload: false })
     }
   }, [state.conversationHistory, state.currentQuery])
 
   return (
-    <AppContainer>
-      <NavigationHeader>
-        <NavigationContainer>
-          <Logo>Rabbit Trail</Logo>
-        </NavigationContainer>
-      </NavigationHeader>
+    <ThemeProvider theme={state.isDarkMode ? darkTheme : lightTheme}>
+      <AppContainer>
+        <NavigationHeader>
+          <NavigationContainer>
+            <Logo>Rabbit Trail</Logo>
+          </NavigationContainer>
+        </NavigationHeader>
 
-      <ConcisenessSidebar>
-        <SliderTitle>Detail</SliderTitle>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <SliderLabel
-            $isActive={state.conciseness === 'short'}
-            onClick={() =>
-              dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
-            }
+        <ConcisenessSidebar>
+          <SliderTitle>Detail</SliderTitle>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px',
+            }}
           >
-            Short
-          </SliderLabel>
-          <SliderContainer
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-          >
-            <SliderTrack />
-            <SliderThumb $position={sliderPosition} />
-          </SliderContainer>
-          <SliderLabel
-            $isActive={state.conciseness === 'long'}
-            onClick={() =>
-              dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
-            }
-          >
-            Long
-          </SliderLabel>
-        </div>
-      </ConcisenessSidebar>
-
-      <Sidebar $isVisible={state.isSidebarVisible}>
-        {/* History entries */}
-        {state.historyEntries.map((entry, index) => (
-          <HistoryEntry key={index}>
-            <HistoryQuery onClick={() => loadHistoryEntry(entry)}>
-              {entry.queryText}
-            </HistoryQuery>
-            <HistorySnippet>{getSnippet(entry.responseText)}</HistorySnippet>
-            <RevertButton onClick={() => handleRevert(entry, index)}>
-              Revert
-            </RevertButton>
-          </HistoryEntry>
-        ))}
-      </Sidebar>
-
-      <MainContainer>
-        <InputContainer>
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', width: '100%' }}
-          >
-            <CenteredInput
-              type="text"
-              placeholder="Ask a question..."
-              value={state.inputText}
-              onChange={handleInputChange}
-              disabled={state.isLoading}
-            />
-            <button type="submit" style={{ display: 'none' }} />
-          </form>
-        </InputContainer>
-
-        {state.currentQuery && (state.result || state.isLoading) && (
-          <CurrentQuery>{state.currentQuery}</CurrentQuery>
-        )}
-
-        {(state.result || state.isLoading) && (
-          <Result>
-            {state.isLoading && !state.result
-              ? 'Thinking...'
-              : renderResultWithHighlights(
-                  state.result,
-                  state.explorableConcepts
-                )}
-            {state.isLoading && state.result && (
-              <span style={{ opacity: 0.5 }}>▊</span>
-            )}
-          </Result>
-        )}
-
-        {state.options.length > 0 && !state.isLoading && (
-          <>
-            <ButtonContainer>
-              {state.options.map((option, index) => (
-                <FollowUpButton
-                  key={index}
-                  onClick={() => handleFollowUpClick(option)}
-                >
-                  {option}
-                </FollowUpButton>
-              ))}
-            </ButtonContainer>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                marginTop: '20px',
-              }}
+            <SliderLabel
+              $isActive={state.conciseness === 'short'}
+              onClick={() =>
+                dispatch({ type: 'SET_CONCISENESS', payload: 'short' })
+              }
             >
-              <ShuffleButton onClick={handleShuffle} disabled={state.isLoading}>
-                <FontAwesomeIcon
-                  icon={faShuffle}
-                  style={{ marginRight: '8px' }}
-                />
-                Shuffle Questions
-              </ShuffleButton>
-            </div>
-          </>
-        )}
-      </MainContainer>
-    </AppContainer>
+              Short
+            </SliderLabel>
+            <SliderContainer
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+            >
+              <SliderTrack />
+              <SliderThumb $position={sliderPosition} />
+            </SliderContainer>
+            <SliderLabel
+              $isActive={state.conciseness === 'long'}
+              onClick={() =>
+                dispatch({ type: 'SET_CONCISENESS', payload: 'long' })
+              }
+            >
+              Long
+            </SliderLabel>
+          </div>
+        </ConcisenessSidebar>
+
+        <Sidebar $isVisible={state.isSidebarVisible}>
+          {/* History entries */}
+          {state.historyEntries.map((entry, index) => (
+            <HistoryEntry key={index}>
+              <HistoryQuery onClick={() => loadHistoryEntry(entry)}>
+                {entry.queryText}
+              </HistoryQuery>
+              <HistorySnippet>{getSnippet(entry.responseText)}</HistorySnippet>
+              <RevertButton onClick={() => handleRevert(entry, index)}>
+                Revert
+              </RevertButton>
+            </HistoryEntry>
+          ))}
+        </Sidebar>
+
+        <MainContainer>
+          <InputContainer>
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', width: '100%' }}
+            >
+              <CenteredInput
+                type="text"
+                placeholder="Ask a question..."
+                value={state.inputText}
+                onChange={handleInputChange}
+                disabled={state.isLoading}
+              />
+              <button type="submit" style={{ display: 'none' }} />
+            </form>
+          </InputContainer>
+
+          {state.currentQuery && (state.result || state.isLoading) && (
+            <CurrentQuery>{state.currentQuery}</CurrentQuery>
+          )}
+
+          {(state.result || state.isLoading) && (
+            <Result>
+              {state.isLoading && !state.result ? (
+                <LoadingIndicator>
+                  Thinking
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </LoadingIndicator>
+              ) : (
+                <>
+                  {renderResultWithHighlights(
+                    state.result,
+                    state.explorableConcepts
+                  )}
+                  {state.isLoading && state.result && <StreamingIndicator />}
+                </>
+              )}
+            </Result>
+          )}
+
+          {state.options.length > 0 && !state.isLoading && (
+            <>
+              <ButtonContainer>
+                {state.options.map((option, index) => (
+                  <FollowUpButton
+                    key={index}
+                    onClick={() => handleFollowUpClick(option)}
+                    style={{ '--index': index } as React.CSSProperties}
+                  >
+                    {option}
+                  </FollowUpButton>
+                ))}
+              </ButtonContainer>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginTop: '20px',
+                }}
+              >
+                <ShuffleButton
+                  onClick={handleShuffle}
+                  disabled={state.isLoading}
+                >
+                  <FontAwesomeIcon
+                    icon={faShuffle}
+                    style={{ marginRight: '8px' }}
+                  />
+                  Shuffle Questions
+                </ShuffleButton>
+              </div>
+            </>
+          )}
+        </MainContainer>
+
+        <ThemeToggle onClick={() => dispatch({ type: 'TOGGLE_THEME' })}>
+          <ThemeIcon $isVisible={state.isDarkMode}>
+            <FontAwesomeIcon icon={faMoon} />
+          </ThemeIcon>
+          <ThemeIcon $isVisible={!state.isDarkMode}>
+            <FontAwesomeIcon icon={faSun} />
+          </ThemeIcon>
+        </ThemeToggle>
+      </AppContainer>
+    </ThemeProvider>
   )
 }
