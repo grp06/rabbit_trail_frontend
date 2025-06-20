@@ -37,6 +37,13 @@ import {
   StreamingIndicator,
   ThemeToggle,
   ThemeIcon,
+  ModalOverlay,
+  ModalContainer,
+  ModalCloseButton,
+  ModalTitle,
+  ModalContent,
+  ModalFeatureList,
+  ModalButton,
   lightTheme,
   darkTheme,
 } from './StyledComponents'
@@ -63,6 +70,7 @@ interface AppState {
   conciseness: 'short' | 'medium' | 'long'
   isDragging: boolean
   isDarkMode: boolean
+  isModalVisible: boolean
 }
 
 // Action types
@@ -79,6 +87,7 @@ type AppAction =
   | { type: 'SET_CONCISENESS'; payload: 'short' | 'medium' | 'long' }
   | { type: 'SET_DRAGGING'; payload: boolean }
   | { type: 'TOGGLE_THEME' }
+  | { type: 'SET_MODAL_VISIBLE'; payload: boolean }
   | {
       type: 'ADD_CONVERSATION_HISTORY'
       payload: { role: string; content: string }[]
@@ -121,6 +130,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, isDragging: action.payload }
     case 'TOGGLE_THEME':
       return { ...state, isDarkMode: !state.isDarkMode }
+    case 'SET_MODAL_VISIBLE':
+      return { ...state, isModalVisible: action.payload }
     case 'ADD_CONVERSATION_HISTORY':
       return {
         ...state,
@@ -162,10 +173,19 @@ const initialState: AppState = {
   conciseness: 'short',
   isDragging: false,
   isDarkMode: true,
+  isModalVisible: false,
 }
 
 export default function Home() {
   const [state, dispatch] = useReducer(appReducer, initialState)
+
+  // Check if this is the user's first visit
+  React.useEffect(() => {
+    const hasVisitedBefore = localStorage.getItem('hasVisitedShallowResearch')
+    if (!hasVisitedBefore) {
+      dispatch({ type: 'SET_MODAL_VISIBLE', payload: true })
+    }
+  }, [])
 
   // Memoized callbacks to prevent recreation on every render
   const handleInputChange = useCallback(
@@ -541,6 +561,17 @@ export default function Home() {
     }
   }, [state.conversationHistory, state.currentQuery])
 
+  // Modal handlers
+  const handleCloseModal = useCallback(() => {
+    localStorage.setItem('hasVisitedShallowResearch', 'true')
+    dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })
+  }, [])
+
+  const handleGetStarted = useCallback(() => {
+    localStorage.setItem('hasVisitedShallowResearch', 'true')
+    dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })
+  }, [])
+
   return (
     <ThemeProvider theme={state.isDarkMode ? darkTheme : lightTheme}>
       <AppContainer>
@@ -688,6 +719,48 @@ export default function Home() {
             <FontAwesomeIcon icon={faSun} />
           </ThemeIcon>
         </ThemeToggle>
+
+        <ModalOverlay
+          $isVisible={state.isModalVisible}
+          onClick={handleCloseModal}
+        >
+          <ModalContainer
+            $isVisible={state.isModalVisible}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ModalCloseButton onClick={handleCloseModal}>×</ModalCloseButton>
+
+            <ModalTitle>Welcome to Shallow Research</ModalTitle>
+
+            <ModalContent>
+              Your AI-powered research companion that turns complex topics into
+              digestible insights. Perfect for when you need to understand
+              something quickly without getting lost in the details.
+            </ModalContent>
+
+            <ModalFeatureList>
+              <li style={{ '--index': 0 } as React.CSSProperties}>
+                Ask any question and get clear, concise answers
+              </li>
+              <li style={{ '--index': 1 } as React.CSSProperties}>
+                Follow suggested questions to explore deeper
+              </li>
+              <li style={{ '--index': 2 } as React.CSSProperties}>
+                Click highlighted concepts for instant explanations
+              </li>
+              <li style={{ '--index': 3 } as React.CSSProperties}>
+                Adjust detail level with the side slider
+              </li>
+              <li style={{ '--index': 4 } as React.CSSProperties}>
+                Track your research journey in the sidebar
+              </li>
+            </ModalFeatureList>
+
+            <ModalButton onClick={handleGetStarted}>
+              Start Exploring
+            </ModalButton>
+          </ModalContainer>
+        </ModalOverlay>
       </AppContainer>
     </ThemeProvider>
   )

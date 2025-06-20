@@ -920,3 +920,159 @@ export const ThemeIcon = styled.div<{ $isVisible: boolean }>`
   transform: rotate(${(props) => (props.$isVisible ? '0deg' : '180deg')});
   transition: all 0.3s ease;
 `
+
+// Modal Components
+export const ModalOverlay = styled.div<{ $isVisible: boolean; theme: Theme }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: ${(props) => (props.$isVisible ? 1 : 0)};
+  visibility: ${(props) => (props.$isVisible ? 'visible' : 'hidden')};
+  transition: all ${durations.normal} ${easings.easeOut};
+  padding: ${(props) => props.theme.spacing.lg};
+`
+
+export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
+  max-width: 500px;
+  width: 100%;
+  ${neumorphic}
+  border-radius: ${(props) => props.theme.radii.xl};
+  padding: ${(props) => props.theme.spacing.xxl};
+  position: relative;
+  transform: ${(props) =>
+    props.$isVisible
+      ? 'scale(1) translateY(0)'
+      : 'scale(0.9) translateY(20px)'};
+  opacity: ${(props) => (props.$isVisible ? 1 : 0)};
+  transition: all ${durations.normal} ${easings.spring};
+  transition-delay: ${(props) => (props.$isVisible ? '100ms' : '0ms')};
+  animation: ${(props) => (props.$isVisible ? fadeIn : 'none')}
+    ${durations.slow} ${easings.easeOut};
+
+  box-shadow: ${(props) => props.theme.shadows.xl},
+    ${(props) => props.theme.shadows.insetSm};
+`
+
+export const ModalCloseButton = styled(BaseButton)<{ theme: Theme }>`
+  position: absolute;
+  top: ${(props) => props.theme.spacing.lg};
+  right: ${(props) => props.theme.spacing.lg};
+  width: 40px;
+  height: 40px;
+  border-radius: ${(props) => props.theme.radii.round};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => props.theme.colors.textMuted};
+  ${neumorphic}
+  font-size: 18px;
+  font-weight: 300;
+
+  box-shadow: ${(props) => props.theme.shadows.sm},
+    ${(props) => props.theme.shadows.insetSm};
+
+  &:hover {
+    color: ${(props) => props.theme.colors.textPrimary};
+    transform: scale(1.05);
+    box-shadow: ${(props) => props.theme.shadows.md},
+      ${(props) => props.theme.shadows.insetSm};
+  }
+
+  &:active {
+    transform: scale(0.95);
+    box-shadow: ${(props) => props.theme.shadows.insetMd};
+  }
+`
+
+export const ModalTitle = styled.h2<{ theme: Theme }>`
+  font-size: 28px;
+  font-weight: 700;
+  color: ${(props) => props.theme.colors.textPrimary};
+  margin: 0 0 ${(props) => props.theme.spacing.lg} 0;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    ${(props) => props.theme.colors.accent},
+    ${(props) => props.theme.colors.accentHover}
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
+  animation-delay: 200ms;
+  animation-fill-mode: both;
+`
+
+export const ModalContent = styled.div<{ theme: Theme }>`
+  color: ${(props) => props.theme.colors.textSecondary};
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: ${(props) => props.theme.spacing.xl};
+  animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
+  animation-delay: 300ms;
+  animation-fill-mode: both;
+  ${textOptimization}
+`
+
+export const ModalFeatureList = styled.ul<{ theme: Theme }>`
+  list-style: none;
+  padding: 0;
+  margin: ${(props) => props.theme.spacing.lg} 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    margin-bottom: ${(props) => props.theme.spacing.md};
+    padding: ${(props) => props.theme.spacing.sm} 0;
+    animation: ${slideInRight} ${durations.normal} ${easings.easeOut};
+    animation-delay: calc(400ms + var(--index) * 100ms);
+    animation-fill-mode: both;
+
+    &::before {
+      content: '✨';
+      margin-right: ${(props) => props.theme.spacing.md};
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  }
+`
+
+export const ModalButton = styled(BaseButton)<{ theme: Theme }>`
+  width: 100%;
+  padding: ${(props) => props.theme.spacing.lg};
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: ${(props) => props.theme.radii.lg};
+  color: ${(props) => props.theme.colors.textPrimary};
+  background: linear-gradient(
+    135deg,
+    ${(props) => props.theme.colors.accent},
+    ${(props) => props.theme.colors.accentHover}
+  );
+  box-shadow: ${(props) => props.theme.shadows.md},
+    inset 1px 1px 2px rgba(255, 255, 255, 0.1);
+  animation: ${scaleIn} ${durations.normal} ${easings.spring};
+  animation-delay: 600ms;
+  animation-fill-mode: both;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: ${(props) => props.theme.shadows.lg},
+      inset 1px 1px 2px rgba(255, 255, 255, 0.15),
+      0 0 20px ${(props) => props.theme.colors.accentGlow};
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: ${(props) => props.theme.shadows.sm},
+      inset 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+`
