@@ -1025,18 +1025,32 @@ export const ModalFeatureList = styled.ul<{ theme: Theme }>`
   li {
     display: flex;
     align-items: center;
-    margin-bottom: ${(props) => props.theme.spacing.md};
-    padding: ${(props) => props.theme.spacing.sm} 0;
+    margin-bottom: ${(props) => props.theme.spacing.sm};
+    padding: ${(props) => props.theme.spacing.xs} 0;
     animation: ${slideInRight} ${durations.normal} ${easings.easeOut};
     animation-delay: calc(400ms + var(--index) * 100ms);
     animation-fill-mode: both;
 
     &::before {
       content: '✨';
-      margin-right: ${(props) => props.theme.spacing.md};
+      margin-right: ${(props) => props.theme.spacing.sm};
       font-size: 14px;
       opacity: 0.8;
     }
+
+    @media (max-width: 768px) {
+      margin-bottom: ${(props) => props.theme.spacing.xs};
+      padding: 2px 0;
+
+      &::before {
+        margin-right: ${(props) => props.theme.spacing.xs};
+        font-size: 12px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    margin: ${(props) => props.theme.spacing.md} 0;
   }
 `
 
