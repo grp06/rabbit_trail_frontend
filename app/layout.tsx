@@ -2,10 +2,10 @@
 
 import StyledComponentsRegistry from './lib/registry'
 import { createGlobalStyle } from 'styled-components'
-import { Roboto } from 'next/font/google'
+import { Inter } from 'next/font/google'
 
-const roboto = Roboto({
-  weight: ['400', '700'],
+const inter = Inter({
+  weight: ['400', '500', '600'],
   subsets: ['latin'],
   display: 'swap',
 })
@@ -14,8 +14,9 @@ const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
     padding: 0;
-    background-color: #f0f0f0;
-    font-family: ${roboto.style.fontFamily}, sans-serif;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    font-family: ${inter.style.fontFamily}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 `
 
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={roboto.className}>
+    <html lang="en" className={inter.className}>
       <StyledComponentsRegistry>
         <GlobalStyle />
         <body>{children}</body>
