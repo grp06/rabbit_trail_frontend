@@ -28,9 +28,11 @@ export interface AppState {
   streamBuffer: string
   displayedText: string
   isTypewriterDone: boolean
+  // Conciseness slider visibility
+  isConcisenessSidebarVisible: boolean
 }
 
-// Action types
+// Action types with better type safety
 export type AppAction =
   | { type: 'SET_INPUT'; payload: string }
   | { type: 'SET_RESULT'; payload: string }
@@ -52,6 +54,7 @@ export type AppAction =
   | { type: 'UPDATE_DISPLAYED_TEXT'; payload: string }
   | { type: 'RESET_STREAMING' }
   | { type: 'SET_TYPEWRITER_DONE'; payload: boolean }
+  | { type: 'SET_CONCISENESS_SIDEBAR_VISIBLE'; payload: boolean }
   | {
       type: 'ADD_CONVERSATION_HISTORY'
       payload: { role: string; content: string }[]
@@ -62,77 +65,182 @@ export type AppAction =
     }
   | { type: 'LOAD_HISTORY_ENTRY'; payload: HistoryItem }
   | { type: 'RESET_QUERY_STATE' }
+  | { type: 'RESET_ALL_STATE' } // New action for complete reset
 
 // Function to shuffle array and pick random questions
 export function getRandomQuestions(
   questions: string[],
   count: number = 6
 ): string[] {
+  if (!Array.isArray(questions) || questions.length === 0) {
+    return []
+  }
   const shuffled = [...questions].sort(() => 0.5 - Math.random())
-  return shuffled.slice(0, count)
+  return shuffled.slice(0, Math.min(count, questions.length))
 }
 
-// Reducer function
+// Helper functions for reducer logic
+const createSafeArray = <T>(input: unknown): T[] => {
+  return Array.isArray(input) ? input : []
+}
+
+const createSafeString = (input: unknown): string => {
+  return typeof input === 'string' ? input : ''
+}
+
+const createSafeBoolean = (input: unknown): boolean => {
+  return typeof input === 'boolean' ? input : false
+}
+
+// Improved reducer with better predictability and error handling
 export function appReducer(state: AppState, action: AppAction): AppState {
-  const { type } = action
-  const payload = 'payload' in action ? action.payload : undefined
-
-  switch (type) {
-    case 'SET_INPUT':
-      const { showSuggestedQuestions, ...restState } = state
-
+  switch (action.type) {
+    case 'SET_INPUT': {
+      const inputText = createSafeString(action.payload)
       return {
-        ...restState,
-        inputText: payload as string,
+        ...state,
+        inputText,
         // Hide suggested questions when user starts typing
         showSuggestedQuestions:
-          (payload as string).trim() === '' ? showSuggestedQuestions : false,
+          inputText.trim() === '' ? state.showSuggestedQuestions : false,
       }
-    case 'SET_RESULT':
-      return { ...state, result: payload as string }
-    case 'SET_OPTIONS':
-      return { ...state, options: payload as string[] }
-    case 'SET_EXPLORABLE_CONCEPTS':
-      return { ...state, explorableConcepts: payload as string[] }
-    case 'SET_LOADING':
-      return { ...state, isLoading: payload as boolean }
-    case 'SET_SIDEBAR_VISIBLE':
-      return { ...state, isSidebarVisible: payload as boolean }
-    case 'ADD_HISTORY_ENTRY':
-      const { historyEntries, ...stateWithoutHistory } = state
+    }
+
+    case 'SET_RESULT': {
       return {
-        ...stateWithoutHistory,
-        historyEntries: [payload as HistoryItem, ...historyEntries],
-        // Only auto-open sidebar on desktop (screen width > 768px)
+        ...state,
+        result: createSafeString(action.payload),
+      }
+    }
+
+    case 'SET_OPTIONS': {
+      return {
+        ...state,
+        options: createSafeArray<string>(action.payload),
+      }
+    }
+
+    case 'SET_EXPLORABLE_CONCEPTS': {
+      return {
+        ...state,
+        explorableConcepts: createSafeArray<string>(action.payload),
+      }
+    }
+
+    case 'SET_LOADING': {
+      return {
+        ...state,
+        isLoading: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'SET_SIDEBAR_VISIBLE': {
+      return {
+        ...state,
+        isSidebarVisible: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'ADD_HISTORY_ENTRY': {
+      const newEntry = action.payload
+      if (!newEntry || typeof newEntry !== 'object') {
+        return state
+      }
+
+      return {
+        ...state,
+        historyEntries: [newEntry, ...state.historyEntries],
+        // Auto-open sidebar on desktop only
         isSidebarVisible:
           typeof window !== 'undefined' && window.innerWidth > 768
             ? true
             : state.isSidebarVisible,
       }
-    case 'SET_HISTORY_ENTRIES':
-      return { ...state, historyEntries: payload as HistoryItem[] }
-    case 'SET_CURRENT_QUERY':
-      return { ...state, currentQuery: payload as string }
-    case 'SET_CONCISENESS':
-      return { ...state, conciseness: payload as 'short' | 'medium' | 'long' }
-    case 'SET_DRAGGING':
-      return { ...state, isDragging: payload as boolean }
-    case 'TOGGLE_THEME':
-      const { isDarkMode } = state
-      return { ...state, isDarkMode: !isDarkMode }
-    case 'SET_MODAL_VISIBLE':
-      return { ...state, isModalVisible: payload as boolean }
-    case 'HIDE_SUGGESTED_QUESTIONS':
-      return { ...state, showSuggestedQuestions: false }
-    case 'SET_SUGGESTED_QUESTIONS':
-      return { ...state, suggestedQuestions: payload as string[] }
-    case 'SET_STREAMING':
-      return { ...state, isStreaming: payload as boolean }
-    case 'UPDATE_STREAM_BUFFER':
-      return { ...state, streamBuffer: payload as string }
-    case 'UPDATE_DISPLAYED_TEXT':
-      return { ...state, displayedText: payload as string }
-    case 'RESET_STREAMING':
+    }
+
+    case 'SET_HISTORY_ENTRIES': {
+      return {
+        ...state,
+        historyEntries: createSafeArray<HistoryItem>(action.payload),
+      }
+    }
+
+    case 'SET_CURRENT_QUERY': {
+      return {
+        ...state,
+        currentQuery: createSafeString(action.payload),
+      }
+    }
+
+    case 'SET_CONCISENESS': {
+      const validValues: AppState['conciseness'][] = ['short', 'medium', 'long']
+      const newValue = validValues.includes(action.payload)
+        ? action.payload
+        : 'short'
+      return {
+        ...state,
+        conciseness: newValue,
+      }
+    }
+
+    case 'SET_DRAGGING': {
+      return {
+        ...state,
+        isDragging: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'TOGGLE_THEME': {
+      return {
+        ...state,
+        isDarkMode: !state.isDarkMode,
+      }
+    }
+
+    case 'SET_MODAL_VISIBLE': {
+      return {
+        ...state,
+        isModalVisible: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'HIDE_SUGGESTED_QUESTIONS': {
+      return {
+        ...state,
+        showSuggestedQuestions: false,
+      }
+    }
+
+    case 'SET_SUGGESTED_QUESTIONS': {
+      return {
+        ...state,
+        suggestedQuestions: createSafeArray<string>(action.payload),
+        showSuggestedQuestions: true,
+      }
+    }
+
+    case 'SET_STREAMING': {
+      return {
+        ...state,
+        isStreaming: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'UPDATE_STREAM_BUFFER': {
+      return {
+        ...state,
+        streamBuffer: createSafeString(action.payload),
+      }
+    }
+
+    case 'UPDATE_DISPLAYED_TEXT': {
+      return {
+        ...state,
+        displayedText: createSafeString(action.payload),
+      }
+    }
+
+    case 'RESET_STREAMING': {
       return {
         ...state,
         isStreaming: false,
@@ -140,39 +248,69 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         displayedText: '',
         isTypewriterDone: false,
       }
-    case 'ADD_CONVERSATION_HISTORY':
-      const { conversationHistory } = state
+    }
+
+    case 'SET_TYPEWRITER_DONE': {
       return {
         ...state,
-        conversationHistory: [
-          ...conversationHistory,
-          ...(payload as { role: string; content: string }[]),
-        ],
+        isTypewriterDone: createSafeBoolean(action.payload),
       }
-    case 'SET_CONVERSATION_HISTORY':
+    }
+
+    case 'SET_CONCISENESS_SIDEBAR_VISIBLE': {
       return {
         ...state,
-        conversationHistory: payload as Array<{
-          role: string
-          content: string
-        }>,
+        isConcisenessSidebarVisible: createSafeBoolean(action.payload),
       }
-    case 'LOAD_HISTORY_ENTRY':
+    }
+
+    case 'ADD_CONVERSATION_HISTORY': {
+      const newMessages = createSafeArray<{ role: string; content: string }>(
+        action.payload
+      )
+      return {
+        ...state,
+        conversationHistory: [...state.conversationHistory, ...newMessages],
+      }
+    }
+
+    case 'SET_CONVERSATION_HISTORY': {
+      return {
+        ...state,
+        conversationHistory: createSafeArray<{ role: string; content: string }>(
+          action.payload
+        ),
+      }
+    }
+
+    case 'LOAD_HISTORY_ENTRY': {
+      const entry = action.payload
+      if (!entry || typeof entry !== 'object') {
+        return state
+      }
+
       const {
         queryText,
         responseText,
         suggestedFollowups,
         explorableConcepts,
-      } = payload as HistoryItem
+      } = entry
 
       return {
         ...state,
-        currentQuery: queryText,
-        result: responseText,
-        options: suggestedFollowups,
-        explorableConcepts,
+        currentQuery: createSafeString(queryText),
+        result: createSafeString(responseText),
+        options: createSafeArray<string>(suggestedFollowups),
+        explorableConcepts: createSafeArray<string>(explorableConcepts),
+        // Reset streaming state when loading history
+        isStreaming: false,
+        streamBuffer: '',
+        displayedText: createSafeString(responseText),
+        isTypewriterDone: true,
       }
-    case 'RESET_QUERY_STATE':
+    }
+
+    case 'RESET_QUERY_STATE': {
       return {
         ...state,
         result: '',
@@ -181,15 +319,28 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         isStreaming: false,
         streamBuffer: '',
         displayedText: '',
+        isTypewriterDone: false,
       }
-    case 'SET_TYPEWRITER_DONE':
-      return { ...state, isTypewriterDone: payload as boolean }
-    default:
+    }
+
+    case 'RESET_ALL_STATE': {
+      return {
+        ...initialState,
+        // Preserve some user preferences
+        isDarkMode: state.isDarkMode,
+        conciseness: state.conciseness,
+      }
+    }
+
+    default: {
+      // TypeScript will ensure this is never reached with proper typing
+      console.warn('Unknown action type:', (action as any).type)
       return state
+    }
   }
 }
 
-// Initial state
+// Initial state with better defaults
 export const initialState: AppState = {
   inputText: '',
   result: '',
@@ -210,4 +361,5 @@ export const initialState: AppState = {
   streamBuffer: '',
   displayedText: '',
   isTypewriterDone: false,
+  isConcisenessSidebarVisible: true,
 }

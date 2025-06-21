@@ -1,27 +1,50 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import {
   ConcisenessSidebar,
+  ConcisenessSidebarCloseButton,
+  CollapsedConcisenessTrigger,
   SliderContainer,
   SliderTrack,
   SliderThumb,
   SliderLabel,
   SliderTitle,
 } from '../StyledComponents'
+import { useAppContext } from '../context/AppContext'
 import { AppState } from '../state'
 
 type Conciseness = AppState['conciseness']
 
 interface ConcisenessSliderProps {
-  conciseness: Conciseness
-  onConcisenessChange: (value: Conciseness) => void
+  conciseness?: Conciseness
+  onConcisenessChange?: (value: Conciseness) => void
+  // If true, uses context instead of props
+  useContextState?: boolean
 }
 
 export const ConcisenessSlider: React.FC<ConcisenessSliderProps> = ({
-  conciseness,
-  onConcisenessChange,
+  conciseness: propConciseness,
+  onConcisenessChange: propOnChange,
+  useContextState = false,
 }) => {
+  // Always call the hook - conditional usage is in the values
+  const context = useAppContext()
+
+  // Use context or props based on the flag
+  const conciseness = useContextState
+    ? context.state.conciseness
+    : propConciseness!
+  const onConcisenessChange = useContextState
+    ? context.handleConcisenesChange
+    : propOnChange!
+
+  // Get visibility state and toggle handler from context
+  const isConcisenessSidebarVisible = context.state.isConcisenessSidebarVisible
+  const handleConcisenessSidebarToggle = context.handleConcisenessSidebarToggle
+
   const [isDragging, setIsDragging] = useState(false)
 
   const handleSliderInteraction = useCallback(
@@ -105,38 +128,49 @@ export const ConcisenessSlider: React.FC<ConcisenessSliderProps> = ({
   }
 
   return (
-    <ConcisenessSidebar>
-      <SliderTitle>Detail</SliderTitle>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '8px',
-        }}
-      >
-        <SliderLabel
-          $isActive={conciseness === 'short'}
-          onClick={() => handleLabelClick('short')}
+    <>
+      <ConcisenessSidebar $isVisible={isConcisenessSidebarVisible}>
+        <ConcisenessSidebarCloseButton onClick={handleConcisenessSidebarToggle}>
+          ×
+        </ConcisenessSidebarCloseButton>
+        <SliderTitle>Detail</SliderTitle>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+          }}
         >
-          Short
-        </SliderLabel>
-        <SliderContainer
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-        >
-          <SliderTrack />
-          <SliderThumb $position={sliderPosition} />
-        </SliderContainer>
-        <SliderLabel
-          $isActive={conciseness === 'long'}
-          onClick={() => handleLabelClick('long')}
-        >
-          Long
-        </SliderLabel>
-      </div>
-    </ConcisenessSidebar>
+          <SliderLabel
+            $isActive={conciseness === 'short'}
+            onClick={() => handleLabelClick('short')}
+          >
+            Short
+          </SliderLabel>
+          <SliderContainer
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseLeave}
+          >
+            <SliderTrack />
+            <SliderThumb $position={sliderPosition} />
+          </SliderContainer>
+          <SliderLabel
+            $isActive={conciseness === 'long'}
+            onClick={() => handleLabelClick('long')}
+          >
+            Long
+          </SliderLabel>
+        </div>
+      </ConcisenessSidebar>
+
+      {!isConcisenessSidebarVisible && (
+        <CollapsedConcisenessTrigger onClick={handleConcisenessSidebarToggle}>
+          <FontAwesomeIcon icon={faSliders} />
+        </CollapsedConcisenessTrigger>
+      )}
+    </>
   )
 }

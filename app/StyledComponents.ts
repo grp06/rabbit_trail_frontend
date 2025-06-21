@@ -605,7 +605,10 @@ export const RevertButton = styled(BaseButton)<{ theme: Theme }>`
   }
 `
 
-export const ConcisenessSidebar = styled(BaseCard)<{ theme: Theme }>`
+export const ConcisenessSidebar = styled(BaseCard)<{
+  $isVisible: boolean
+  theme: Theme
+}>`
   position: fixed;
   right: ${(props) => props.theme.spacing.lg};
   top: 50%;
@@ -618,9 +621,79 @@ export const ConcisenessSidebar = styled(BaseCard)<{ theme: Theme }>`
     ${(props) => props.theme.spacing.md};
   backdrop-filter: blur(10px);
   border: 1px solid ${(props) => props.theme.colors.borderSubtle};
+  opacity: ${(props) => (props.$isVisible ? 1 : 0)};
+  visibility: ${(props) => (props.$isVisible ? 'visible' : 'hidden')};
+  transition: all 0.3s ease;
 
   @media (max-width: 768px) {
     display: none;
+  }
+`
+
+export const ConcisenessSidebarCloseButton = styled(BaseButton)<{
+  theme: Theme
+}>`
+  position: absolute;
+  top: ${(props) => props.theme.spacing.xs};
+  right: ${(props) => props.theme.spacing.xs};
+  width: 24px;
+  height: 24px;
+  border-radius: ${(props) => props.theme.radii.round};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${(props) => props.theme.colors.textPrimary};
+  font-size: 14px;
+  font-weight: 300;
+
+  &:hover {
+    color: ${(props) => props.theme.colors.accent};
+  }
+`
+
+export const CollapsedConcisenessTrigger = styled(BaseButton)<{ theme: Theme }>`
+  position: fixed;
+  bottom: ${(props) => props.theme.spacing.xl};
+  right: calc(
+    ${(props) => props.theme.spacing.xl} + 56px +
+      ${(props) => props.theme.spacing.md}
+  );
+  width: 48px;
+  height: 48px;
+  border-radius: ${(props) => props.theme.radii.round};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  color: ${(props) => props.theme.colors.textSecondary};
+
+  svg {
+    width: 18px;
+    height: 18px;
+    transition: all 0.3s ease;
+  }
+
+  &:hover {
+    color: ${(props) => props.theme.colors.accent};
+
+    svg {
+      filter: drop-shadow(0 0 3px ${(props) => props.theme.colors.accentGlow});
+    }
+  }
+
+  @media (max-width: 768px) {
+    bottom: ${(props) => props.theme.spacing.lg};
+    right: calc(
+      ${(props) => props.theme.spacing.lg} + 48px +
+        ${(props) => props.theme.spacing.sm}
+    );
+    width: 40px;
+    height: 40px;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
   }
 `
 
@@ -1023,9 +1096,13 @@ export const ModalCloseButton = styled(BaseButton)<{ theme: Theme }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${(props) => props.theme.colors.textMuted};
+  color: ${(props) => props.theme.colors.textPrimary};
   font-size: 18px;
   font-weight: 300;
+
+  &:hover {
+    color: ${(props) => props.theme.colors.accent};
+  }
 
   @media (max-width: 768px) {
     top: ${(props) => props.theme.spacing.md};

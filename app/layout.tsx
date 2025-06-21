@@ -1,4 +1,5 @@
 import StyledComponentsRegistry from './lib/registry'
+import { AppProvider } from './context/AppContext'
 import { Space_Grotesk } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { metadata as siteMetadata } from './metadata'
@@ -23,8 +24,10 @@ export default function RootLayout({
       <head>{/* Additional meta tags if needed */}</head>
       <body>
         <StyledComponentsRegistry>
-          {children}
-          <GoogleAnalytics gaId="G-VSR6SDJ4J5" />
+          <AppProvider>
+            {children}
+            <GoogleAnalytics gaId="G-VSR6SDJ4J5" />
+          </AppProvider>
         </StyledComponentsRegistry>
       </body>
     </html>
