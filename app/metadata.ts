@@ -1,36 +1,38 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
+  title: 'Rabbit Trail - Follow Your Curiosity Down Endless Rabbit Holes',
   description:
-    'Dive into fascinating rabbit holes with smart follow-up questions. Shallow Research helps you explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
+    'Tumble down delightful rabbit holes with whimsical follow-up questions. Rabbit Trail turns every question into a playful journey of discovery, leading you through unexpected trails of wonder and connection.',
   keywords: [
-    'AI research',
+    'AI curiosity',
     'discovery',
     'learning',
     'exploration',
     'rabbit holes',
-    'curiosity',
+    'rabbit trail',
+    'wonderland',
+    'whimsical learning',
   ],
-  authors: [{ name: 'Shallow Research' }],
-  creator: 'Shallow Research',
-  publisher: 'Shallow Research',
+  authors: [{ name: 'Rabbit Trail' }],
+  creator: 'Rabbit Trail',
+  publisher: 'Rabbit Trail',
 
   // Open Graph tags for social media
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://shallowresearch.vercel.app', // Updated to match your actual domain
-    siteName: 'Shallow Research',
-    title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
+    url: 'https://rabbittrail.vercel.app', // Updated to match your actual domain
+    siteName: 'Rabbit Trail',
+    title: 'Rabbit Trail - Follow Your Curiosity Down Endless Rabbit Holes',
     description:
-      'Dive into fascinating rabbit holes with smart follow-up questions. Explore topics broadly rather than deeply, discovering unexpected connections and intriguing tangents.',
+      'Tumble down delightful rabbit holes with whimsical follow-up questions. Turn every question into a playful journey through unexpected trails of wonder and connection.',
     images: [
       {
-        url: 'https://shallowresearch.vercel.app/mag-glass.png',
+        url: 'https://rabbittrail.vercel.app/mag-glass.png',
         width: 1200,
         height: 630,
-        alt: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
+        alt: 'Rabbit Trail - Follow Your Curiosity Down Endless Rabbit Holes',
         type: 'image/png',
       },
     ],
@@ -39,12 +41,12 @@ export const metadata: Metadata = {
   // Twitter Card tags
   twitter: {
     card: 'summary_large_image',
-    site: '@shallowresearch', // Update this to your Twitter handle if you have one
-    creator: '@shallowresearch', // Update this to your Twitter handle
-    title: 'Shallow Research - Internet Rabbit Holes Explored Broadly',
+    site: '@rabbittrail', // Update this to your Twitter handle if you have one
+    creator: '@rabbittrail', // Update this to your Twitter handle
+    title: 'Rabbit Trail - Follow Your Curiosity Down Endless Rabbit Holes',
     description:
-      'Dive into fascinating rabbit holes with smart follow-up questions. Perfect for curious minds who love exploring tangents.',
-    images: ['https://shallowresearch.vercel.app/mag-glass.png'],
+      'Tumble down delightful rabbit holes with whimsical questions. Perfect for curious minds who love wandering wonderful trails.',
+    images: ['https://rabbittrail.vercel.app/mag-glass.png'],
   },
 
   // Additional metadata
@@ -55,7 +57,7 @@ export const metadata: Metadata = {
   ],
 
   // App-specific metadata
-  applicationName: 'Shallow Research',
+  applicationName: 'Rabbit Trail',
   referrer: 'origin-when-cross-origin',
 
   // Prevent indexing if this is still in development

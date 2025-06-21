@@ -329,7 +329,8 @@ const HistorySidebar: React.FC = () => {
               🔍 Search History
             </div>
             <div>
-              Your research trail will appear here as you explore rabbit holes.
+              Your curiosity trail will appear here as you wander down rabbit
+              holes.
             </div>
             <div
               style={{
@@ -363,25 +364,25 @@ const WelcomeModal: React.FC = () => {
         <ModalCloseButton onClick={() => handleCloseModal('button')}>
           ×
         </ModalCloseButton>
-        <ModalTitle>Welcome to Shallow Research</ModalTitle>
+        <ModalTitle>Welcome to Rabbit Trail</ModalTitle>
         <ModalContent>
-          Your AI research sidekick for fast, focused insights.
+          Your whimsical AI companion for delightful curiosity adventures.
         </ModalContent>
         <ModalFeatureList>
           <li style={{ '--index': 0 } as React.CSSProperties}>
-            Ask anything. Get clear, simple answers.
+            Ask anything. Get delightfully clear answers.
           </li>
           <li style={{ '--index': 1 } as React.CSSProperties}>
-            Follow smart follow-ups to dive deeper.
+            Follow whimsical trails to explore further.
           </li>
           <li style={{ '--index': 2 } as React.CSSProperties}>
-            Tap highlighted terms to learn instantly.
+            Tap highlighted terms for instant wonder.
           </li>
           <li style={{ '--index': 3 } as React.CSSProperties}>
-            Slide to adjust detail, from bite-sized to in-depth.
+            Slide to adjust detail, from quick glimpses to deep dives.
           </li>
           <li style={{ '--index': 4 } as React.CSSProperties}>
-            See your research trail in the sidebar.
+            See your curiosity trail in the sidebar.
           </li>
         </ModalFeatureList>
         <ModalButton onClick={() => handleCloseModal('get_started')}>
@@ -686,7 +687,7 @@ export default function Home() {
       <AppContainer>
         <NavigationHeader>
           <NavigationContainer>
-            <Logo>Shallow Research</Logo>
+            <Logo>Rabbit Trail</Logo>
             <NavigationLinks>
               <MobileMenuButton onClick={handleSidebarToggle}>
                 <FontAwesomeIcon icon={faBars} />

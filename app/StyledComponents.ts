@@ -1067,7 +1067,7 @@ export const MobileOverlay = styled.div<{ $isVisible: boolean }>`
 export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
   max-width: 500px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
   ${neumorphicBase}
@@ -1086,6 +1086,7 @@ export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
 
   @media (max-width: 768px) {
     max-width: 95vw;
+    width: 95vw;
     max-height: 95vh;
     padding: ${(props) => props.theme.spacing.sm}; /* Much tighter padding */
     /* Flatten design for mobile */
@@ -1389,10 +1390,10 @@ export const QuizOption = styled.label<{
     box-shadow: none;
     border: 2px solid ${(props) => props.theme.colors.borderSubtle};
     border-radius: ${(props) => props.theme.radii.md};
-    padding: ${(props) => props.theme.spacing.sm}
-      ${(props) => props.theme.spacing.md}; /* More compact padding */
+    padding: ${(props) => props.theme.spacing.xs}
+      ${(props) => props.theme.spacing.sm}; /* More compact padding */
     margin-bottom: 0; /* Remove margin, use grid gap instead */
-    min-height: 50px; /* Smaller but still good touch target */
+    min-height: 40px; /* Shorter but still good touch target */
 
     ${(props) =>
       props.$isSelected &&
@@ -1476,8 +1477,8 @@ export const QuizActions = styled.div<{ theme: Theme }>`
   margin-top: ${(props) => props.theme.spacing.xl};
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    gap: ${(props) => props.theme.spacing.md};
+    flex-direction: row;
+    gap: ${(props) => props.theme.spacing.sm};
     margin-top: ${(props) =>
       props.theme.spacing.sm}; /* Much tighter top margin */
     /* Ensure buttons are outside scrollable area */
@@ -1514,10 +1515,11 @@ export const QuizActionButton = styled(BaseButton)<{
     `}
 
   @media (max-width: 768px) {
-    /* Larger touch targets for mobile */
-    padding: ${(props) => props.theme.spacing.lg};
-    font-size: 16px;
-    min-height: 50px;
+    /* Smaller buttons for better space utilization */
+    padding: ${(props) => props.theme.spacing.sm}
+      ${(props) => props.theme.spacing.md};
+    font-size: 14px;
+    min-height: 40px;
 
     /* Simplified styling */
     ${(props) =>
@@ -1638,29 +1640,51 @@ export const QuizNavigationDot = styled.button<{
   $isAnswered: boolean
   theme: Theme
 }>`
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: ${(props) => props.theme.radii.round};
-  border: none;
+  border: 2px solid ${(props) => props.theme.colors.borderSubtle};
   cursor: pointer;
   transition: ${(props) => props.theme.transitions.smooth};
-  ${neumorphicBase}
+  background: ${(props) => props.theme.colors.base};
 
   ${(props) =>
     props.$isActive &&
     css`
       background: ${props.theme.colors.accent};
+      border-color: ${props.theme.colors.accent};
       transform: scale(1.2);
     `}
-  
+
   ${(props) =>
     props.$isAnswered &&
     !props.$isActive &&
     css`
       background: ${props.theme.colors.textTertiary};
+      border-color: ${props.theme.colors.textTertiary};
     `}
   
   &:hover {
     transform: scale(1.1);
+    border-color: ${(props) => props.theme.colors.accent};
+  }
+
+  @media (max-width: 768px) {
+    width: 14px;
+    height: 14px;
+    border: 2px solid ${(props) => props.theme.colors.border};
+
+    ${(props) =>
+      props.$isActive &&
+      css`
+        border-color: ${props.theme.colors.accent};
+      `}
+
+    ${(props) =>
+      props.$isAnswered &&
+      !props.$isActive &&
+      css`
+        border-color: ${props.theme.colors.textSecondary};
+      `}
   }
 `

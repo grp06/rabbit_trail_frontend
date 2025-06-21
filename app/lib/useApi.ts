@@ -3,23 +3,74 @@ import { API_ENDPOINTS } from '../config'
 import { useAppAnalytics } from './analytics-hooks'
 import type { AppState, AppAction, HistoryItem } from '../state'
 
-// The state and dispatch types are essential for the hook to interact
-// with the component's state. We'll ensure these are exported from state.ts later.
+// Configuration for streaming robustness
+const STREAM_CONFIG = {
+  TIMEOUT_MS: 30000, // 30 seconds timeout
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY_MS: 1000, // 1 second between retries
+  CHUNK_TIMEOUT_MS: 10000, // 10 seconds max between chunks
+}
+
+// Enhanced error types for better handling
+enum StreamErrorType {
+  NETWORK_ERROR = 'network_error',
+  TIMEOUT_ERROR = 'timeout_error',
+  PARSE_ERROR = 'parse_error',
+  CONNECTION_CLOSED = 'connection_closed',
+  SERVER_ERROR = 'server_error',
+}
+
+interface StreamError extends Error {
+  type: StreamErrorType
+  retryable: boolean
+}
+
+const createStreamError = (
+  message: string,
+  type: StreamErrorType,
+  retryable: boolean = false
+): StreamError => {
+  const error = new Error(message) as StreamError
+  error.type = type
+  error.retryable = retryable
+  return error
+}
 
 const processStreamResponse = async (
   reader: ReadableStreamDefaultReader<Uint8Array>,
-  dispatch: React.Dispatch<AppAction>
+  dispatch: React.Dispatch<AppAction>,
+  abortSignal: AbortSignal
 ) => {
   const decoder = new TextDecoder()
   let buffer = ''
   let finalResponse: any = null
   let streamedResult = ''
+  let lastChunkTime = Date.now()
 
   try {
     while (true) {
+      // Check for abort signal
+      if (abortSignal.aborted) {
+        throw createStreamError(
+          'Stream aborted',
+          StreamErrorType.CONNECTION_CLOSED,
+          false
+        )
+      }
+
+      // Check for chunk timeout
+      if (Date.now() - lastChunkTime > STREAM_CONFIG.CHUNK_TIMEOUT_MS) {
+        throw createStreamError(
+          'Chunk timeout - no data received',
+          StreamErrorType.TIMEOUT_ERROR,
+          true
+        )
+      }
+
       const { done, value } = await reader.read()
       if (done) break
 
+      lastChunkTime = Date.now()
       const chunk = decoder.decode(value, { stream: true })
       buffer += chunk
 
@@ -35,9 +86,19 @@ const processStreamResponse = async (
           }
 
           try {
-            const { type, content, data } = JSON.parse(dataContent)
+            const { type, content, data, message } = JSON.parse(dataContent)
 
             switch (type) {
+              case 'connected':
+                // Server confirmed connection - log but don't update UI
+                console.debug('Stream connection established')
+                break
+
+              case 'heartbeat':
+                // Server heartbeat - log but don't update UI
+                console.debug('Stream heartbeat received')
+                break
+
               case 'text_delta':
                 streamedResult += content
                 dispatch({
@@ -53,7 +114,9 @@ const processStreamResponse = async (
                   options: dataOptions,
                   explorable_concepts,
                 } = data
-                if (Math.abs(streamedResult.length - answer.length) > 10) {
+                // Always update stream buffer with the final answer to ensure consistency
+                if (answer && answer.length > 0) {
+                  streamedResult = answer
                   dispatch({
                     type: 'UPDATE_STREAM_BUFFER',
                     payload: answer,
@@ -70,36 +133,144 @@ const processStreamResponse = async (
                 break
 
               case 'error':
-                const { message } = JSON.parse(dataContent)
-                console.error('Stream error:', message)
-                dispatch({
-                  type: 'SET_RESULT',
-                  payload: 'Error: ' + message,
-                })
-                break
+                console.error('Stream error:', message || 'Unknown error')
+                throw createStreamError(
+                  message || 'Server reported an error',
+                  StreamErrorType.SERVER_ERROR,
+                  false
+                )
+
+              case 'refusal':
+                console.warn('Request was refused:', message)
+                throw createStreamError(
+                  `Request refused: ${message || 'Content policy violation'}`,
+                  StreamErrorType.SERVER_ERROR,
+                  false
+                )
 
               case 'end':
+                console.debug('Stream ended')
+                break
+
+              default:
+                console.debug('Unknown stream event type:', type)
                 break
             }
           } catch (parseError) {
+            if (
+              parseError instanceof Error &&
+              (parseError as StreamError).type
+            ) {
+              // Re-throw stream errors
+              throw parseError
+            }
             console.warn('Failed to parse SSE data:', dataContent)
+            // Don't throw for parse errors, just log and continue
           }
         }
       }
     }
   } catch (error) {
-    if (error instanceof Error && error.name !== 'AbortError') {
-      console.debug('Stream read error:', error.message)
+    // Handle different error types
+    if (error instanceof Error) {
+      const streamError = error as StreamError
+
+      // Don't log AbortError as these are intentional
+      if (
+        error.name !== 'AbortError' &&
+        streamError.type !== StreamErrorType.CONNECTION_CLOSED
+      ) {
+        console.error(
+          'Stream read error:',
+          error.message,
+          'Type:',
+          streamError.type
+        )
+      }
+
+      // Re-throw to be handled by caller
+      throw error
     }
   } finally {
     try {
       reader.releaseLock()
     } catch (e) {
-      // Ignore
+      // Ignore lock release errors
     }
   }
 
   return { finalResponse, streamedResult }
+}
+
+// Enhanced fetch with timeout and retry logic
+const fetchWithRetry = async (
+  url: string,
+  options: RequestInit,
+  retryAttempt: number = 0
+): Promise<Response> => {
+  const controller = new AbortController()
+
+  // Set up timeout
+  const timeoutId = setTimeout(() => {
+    controller.abort()
+  }, STREAM_CONFIG.TIMEOUT_MS)
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      throw createStreamError(
+        `HTTP ${response.status}: ${response.statusText}`,
+        StreamErrorType.SERVER_ERROR,
+        response.status >= 500 // Server errors are retryable
+      )
+    }
+
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+
+    if (error instanceof Error) {
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        throw createStreamError(
+          'Request timeout',
+          StreamErrorType.TIMEOUT_ERROR,
+          true
+        )
+      }
+
+      if (
+        error.message.includes('network') ||
+        error.message.includes('fetch')
+      ) {
+        throw createStreamError(
+          error.message,
+          StreamErrorType.NETWORK_ERROR,
+          true
+        )
+      }
+
+      // If it's already a stream error, re-throw
+      if ((error as StreamError).type) {
+        throw error
+      }
+
+      // Generic network error
+      throw createStreamError(
+        error.message,
+        StreamErrorType.NETWORK_ERROR,
+        true
+      )
+    }
+
+    throw error
+  }
 }
 
 export function useApi(state: AppState, dispatch: React.Dispatch<AppAction>) {
@@ -142,61 +313,129 @@ export function useApi(state: AppState, dispatch: React.Dispatch<AppAction>) {
       dispatch({ type: 'RESET_QUERY_STATE' })
       dispatch({ type: 'RESET_STREAMING' })
 
-      try {
-        const response = await fetch(API_ENDPOINTS.openai, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: message,
-            conversation_history: includeHistory ? conversationHistory : [],
-            conciseness,
-          }),
-        })
+      let lastError: StreamError | null = null
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
+      for (let attempt = 0; attempt < STREAM_CONFIG.RETRY_ATTEMPTS; attempt++) {
+        try {
+          // Add delay between retries (except first attempt)
+          if (attempt > 0) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, STREAM_CONFIG.RETRY_DELAY_MS * attempt)
+            )
+            console.log(
+              `Retrying request (attempt ${attempt + 1}/${
+                STREAM_CONFIG.RETRY_ATTEMPTS
+              })`
+            )
+          }
+
+          const response = await fetchWithRetry(
+            API_ENDPOINTS.openai,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                message: message,
+                conversation_history: includeHistory ? conversationHistory : [],
+                conciseness,
+              }),
+            },
+            attempt
+          )
+
+          const reader = response.body?.getReader()
+          if (!reader) {
+            throw createStreamError(
+              'No response body',
+              StreamErrorType.SERVER_ERROR,
+              false
+            )
+          }
+
+          // Create abort controller for this specific stream
+          const streamController = new AbortController()
+
+          dispatch({ type: 'SET_STREAMING', payload: true })
+          const { finalResponse, streamedResult } = await processStreamResponse(
+            reader,
+            dispatch,
+            streamController.signal
+          )
+          dispatch({ type: 'SET_STREAMING', payload: false })
+
+          const finalResultText = finalResponse?.answer || streamedResult
+          if (finalResultText) {
+            // Set the final result in state so the UI displays it correctly
+            dispatch({ type: 'SET_RESULT', payload: finalResultText })
+
+            // Ensure typewriter is marked as done when streaming completes
+            dispatch({ type: 'SET_TYPEWRITER_DONE', payload: true })
+
+            dispatch({
+              type: 'ADD_CONVERSATION_HISTORY',
+              payload: [
+                { role: 'user', content: message },
+                { role: 'assistant', content: finalResultText },
+              ],
+            })
+            trackSearchComplete(message.length, startTime)
+          }
+
+          // Success! Break out of retry loop
+          return
+        } catch (error) {
+          lastError = error as StreamError
+
+          // Log the error
+          console.error(
+            `Request attempt ${attempt + 1} failed:`,
+            lastError.message
+          )
+
+          // If this error is not retryable, break immediately
+          if (
+            !lastError.retryable ||
+            attempt === STREAM_CONFIG.RETRY_ATTEMPTS - 1
+          ) {
+            break
+          }
         }
-
-        const reader = response.body?.getReader()
-        if (!reader) {
-          throw new Error('No response body')
-        }
-
-        dispatch({ type: 'SET_STREAMING', payload: true })
-        const { finalResponse, streamedResult } = await processStreamResponse(
-          reader,
-          dispatch
-        )
-        dispatch({ type: 'SET_STREAMING', payload: false })
-
-        // Ensure typewriter is marked as done when streaming completes
-        dispatch({ type: 'SET_TYPEWRITER_DONE', payload: true })
-
-        const finalResultText = finalResponse?.answer || streamedResult
-        if (finalResultText) {
-          dispatch({
-            type: 'ADD_CONVERSATION_HISTORY',
-            payload: [
-              { role: 'user', content: message },
-              { role: 'assistant', content: finalResultText },
-            ],
-          })
-          trackSearchComplete(message.length, startTime)
-        }
-      } catch (error) {
-        console.error('Error:', error)
-        trackSearchError(
-          '/api/openai',
-          error instanceof Error ? error.message : 'Unknown error'
-        )
-        dispatch({ type: 'SET_RESULT', payload: 'Error: Something went wrong' })
-        dispatch({ type: 'SET_OPTIONS', payload: [] })
-        dispatch({ type: 'RESET_STREAMING' })
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false })
       }
+
+      // All retries failed
+      console.error(
+        'All retry attempts failed. Last error:',
+        lastError?.message
+      )
+
+      let errorMessage = 'Something went wrong'
+      if (lastError) {
+        switch (lastError.type) {
+          case StreamErrorType.TIMEOUT_ERROR:
+            errorMessage = 'Request timed out. Please try again.'
+            break
+          case StreamErrorType.NETWORK_ERROR:
+            errorMessage =
+              'Network error. Please check your connection and try again.'
+            break
+          case StreamErrorType.CONNECTION_CLOSED:
+            errorMessage = 'Connection was interrupted. Please try again.'
+            break
+          case StreamErrorType.SERVER_ERROR:
+            errorMessage = 'Server error. Please try again in a moment.'
+            break
+          default:
+            errorMessage = lastError.message || 'An unexpected error occurred'
+        }
+      }
+
+      trackSearchError('/api/openai', lastError?.message || 'Unknown error')
+      dispatch({ type: 'SET_RESULT', payload: `Error: ${errorMessage}` })
+      dispatch({ type: 'SET_OPTIONS', payload: [] })
+      dispatch({ type: 'RESET_STREAMING' })
+      dispatch({ type: 'SET_LOADING', payload: false })
     },
     [
       result,

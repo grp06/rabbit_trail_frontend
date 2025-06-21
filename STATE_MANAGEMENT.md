@@ -1,6 +1,6 @@
 # State Management Architecture
 
-This document outlines the improved state management architecture for the Shallow Research frontend application.
+This document outlines the improved state management architecture for the Rabbit Trail frontend application.
 
 ## Overview
 
