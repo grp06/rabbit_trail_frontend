@@ -259,10 +259,24 @@ const SearchResult: React.FC = () => {
 const FollowUpQuestions: React.FC = () => {
   const { handleFollowUpClick, handleShuffle } = useAppContext()
   const { options } = useQuestionsState()
-  const { isLoading } = useSearchState()
+  const { isLoading, isStreaming } = useSearchState()
   const { isTypewriterDone } = useAppContext().state
 
-  if (options.length === 0 || isLoading || !isTypewriterDone) {
+  // Debug logging
+  console.debug('FollowUpQuestions render:', {
+    optionsLength: options.length,
+    isLoading,
+    isStreaming,
+    isTypewriterDone,
+    shouldShow: options.length > 0 && !isLoading && !isStreaming,
+  })
+
+  // Show follow-up questions when:
+  // 1. We have options
+  // 2. Not currently loading
+  // 3. Not currently streaming (streaming has finished)
+  // We don't need to wait for typewriter to finish - options can show while text is still animating
+  if (options.length === 0 || isLoading || isStreaming) {
     return null
   }
 

@@ -114,6 +114,15 @@ const processStreamResponse = async (
                   options: dataOptions,
                   explorable_concepts,
                 } = data
+
+                // Debug logging
+                console.debug('Stream complete event received:', {
+                  hasAnswer: !!answer,
+                  answerLength: answer?.length || 0,
+                  optionsCount: dataOptions?.length || 0,
+                  explorableConceptsCount: explorable_concepts?.length || 0,
+                })
+
                 // Always update stream buffer with the final answer to ensure consistency
                 if (answer && answer.length > 0) {
                   streamedResult = answer
@@ -130,6 +139,8 @@ const processStreamResponse = async (
                   type: 'SET_EXPLORABLE_CONCEPTS',
                   payload: explorable_concepts || [],
                 })
+
+                console.debug('Options dispatched:', dataOptions || [])
                 break
 
               case 'error':
@@ -369,9 +380,6 @@ export function useApi(state: AppState, dispatch: React.Dispatch<AppAction>) {
           if (finalResultText) {
             // Set the final result in state so the UI displays it correctly
             dispatch({ type: 'SET_RESULT', payload: finalResultText })
-
-            // Ensure typewriter is marked as done when streaming completes
-            dispatch({ type: 'SET_TYPEWRITER_DONE', payload: true })
 
             dispatch({
               type: 'ADD_CONVERSATION_HISTORY',
