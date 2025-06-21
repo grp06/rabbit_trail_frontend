@@ -492,9 +492,10 @@ const QuizModal: React.FC = () => {
               <span></span>
             </LoadingIndicator>
             <QuizScoreSubtext style={{ marginTop: '2rem' }}>
-              We're creating personalized questions based on your conversation.
+              We&apos;re creating personalized questions based on your
+              conversation.
               <br />
-              This quiz is temporary and won't be saved.
+              This quiz is temporary and won&apos;t be saved.
             </QuizScoreSubtext>
           </QuizLoadingContainer>
         ) : showQuizResults ? (
@@ -508,7 +509,7 @@ const QuizModal: React.FC = () => {
                 </QuizScoreText>
                 <QuizScoreSubtext>
                   {score === quizQuestions.length
-                    ? "Perfect score! You've mastered this topic!"
+                    ? 'Perfect score! You&apos;ve mastered this topic!'
                     : score >= quizQuestions.length * 0.7
                     ? 'Great job! You have a solid understanding.'
                     : 'Keep learning! Review the answers to improve.'}
