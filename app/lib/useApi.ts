@@ -140,6 +140,9 @@ const processStreamResponse = async (
                   payload: explorable_concepts || [],
                 })
 
+                // Set streaming to false here since we have all the data
+                dispatch({ type: 'SET_STREAMING', payload: false })
+
                 console.debug('Options dispatched:', dataOptions || [])
                 break
 
@@ -392,6 +395,7 @@ export function useApi(state: AppState, dispatch: React.Dispatch<AppAction>) {
           }
 
           // Success! Break out of retry loop
+          dispatch({ type: 'SET_LOADING', payload: false })
           return
         } catch (error) {
           lastError = error as StreamError
