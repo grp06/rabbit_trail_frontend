@@ -1067,6 +1067,9 @@ export const MobileOverlay = styled.div<{ $isVisible: boolean }>`
 export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
   max-width: 500px;
   width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   ${neumorphicBase}
   padding: ${(props) => props.theme.spacing.xxl};
   position: relative;
@@ -1079,10 +1082,17 @@ export const ModalContainer = styled.div<{ $isVisible: boolean; theme: Theme }>`
   transition-delay: ${(props) => (props.$isVisible ? '100ms' : '0ms')};
   animation: ${(props) => (props.$isVisible ? fadeIn : 'none')}
     ${durations.slow} ${easings.easeOut};
+  overflow: hidden;
 
   @media (max-width: 768px) {
-    max-width: 90%;
-    padding: ${(props) => props.theme.spacing.xl};
+    max-width: 95vw;
+    max-height: 95vh;
+    padding: ${(props) => props.theme.spacing.sm}; /* Much tighter padding */
+    /* Flatten design for mobile */
+    background: ${(props) => props.theme.colors.base};
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: ${(props) => props.theme.radii.lg};
+    /* Remove neumorphic complexity */
   }
 `
 
@@ -1122,7 +1132,11 @@ export const ModalTitle = styled.h2<{ theme: Theme }>`
   animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
   animation-delay: 200ms;
   animation-fill-mode: both;
-  text-shadow: 0 0 4px ${(props) => props.theme.colors.accentGlow};
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+    margin: 0 0 ${(props) => props.theme.spacing.sm} 0; /* Much tighter bottom margin */
+  }
 `
 
 export const ModalContent = styled.div<{ theme: Theme }>`
@@ -1187,8 +1201,7 @@ export const ModalButton = styled(BaseButton)<{ theme: Theme }>`
 
   &:hover {
     background: ${(props) => props.theme.colors.accentHover};
-    box-shadow: ${(props) => props.theme.shadows.neuHover},
-      0 0 10px ${(props) => props.theme.colors.accentGlow};
+    box-shadow: ${(props) => props.theme.shadows.neuHover};
   }
 
   &:active {
@@ -1198,5 +1211,456 @@ export const ModalButton = styled(BaseButton)<{ theme: Theme }>`
   @media (max-width: 768px) {
     padding: ${(props) => props.theme.spacing.md};
     font-size: 15px;
+  }
+`
+
+export const ModalScrollableContent = styled.div<{ theme: Theme }>`
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0 -${(props) => props.theme.spacing.xxl};
+  padding: 0 ${(props) => props.theme.spacing.xxl};
+  ${smoothScrollbar}
+
+  @media (max-width: 768px) {
+    /* Simplified mobile layout */
+    margin: 0;
+    padding: 0;
+    /* Remove negative margins that cause layout issues */
+  }
+`
+
+// Quiz Components
+export const QuizButton = styled(BaseButton)<{ theme: Theme }>`
+  position: fixed;
+  bottom: ${(props) => props.theme.spacing.xl};
+  right: calc(${(props) => props.theme.spacing.xl} + 80px);
+  padding: ${(props) => props.theme.spacing.sm}
+    ${(props) => props.theme.spacing.lg};
+  font-size: 14px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.textPrimary};
+  background: ${(props) => props.theme.colors.accent};
+  box-shadow: ${(props) => props.theme.shadows.neu};
+  display: flex;
+  align-items: center;
+  gap: ${(props) => props.theme.spacing.xs};
+  z-index: 1000;
+  animation: ${scaleIn} ${durations.normal} ${easings.spring};
+
+  &:hover {
+    background: ${(props) => props.theme.colors.accentHover};
+    box-shadow: ${(props) => props.theme.shadows.neuHover};
+  }
+
+  @media (max-width: 768px) {
+    bottom: ${(props) => props.theme.spacing.lg};
+    right: calc(${(props) => props.theme.spacing.lg} + 60px);
+    padding: ${(props) => props.theme.spacing.xs}
+      ${(props) => props.theme.spacing.md};
+    font-size: 13px;
+  }
+`
+
+export const QuizContainer = styled.div<{ theme: Theme }>`
+  display: flex;
+  flex-direction: column;
+  gap: ${(props) => props.theme.spacing.xl};
+
+  @media (max-width: 768px) {
+    gap: ${(props) => props.theme.spacing.sm}; /* Much tighter spacing */
+    /* Reduce gap on mobile for better space utilization */
+  }
+`
+
+export const QuizQuestionCard = styled(BaseCard)<{ theme: Theme }>`
+  padding: ${(props) => props.theme.spacing.lg};
+  animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
+  animation-delay: calc(var(--index) * 100ms);
+  animation-fill-mode: both;
+
+  @media (max-width: 768px) {
+    /* Flatten for mobile */
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: ${(props) => props.theme.spacing.xs} 0; /* Minimal padding */
+    margin-bottom: ${(props) => props.theme.spacing.sm}; /* Reduced margin */
+
+    /* Add subtle border instead of card effect */
+    border-bottom: 1px solid ${(props) => props.theme.colors.borderSubtle};
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+`
+
+export const QuizQuestionWrapper = styled.div<{ theme: Theme }>`
+  animation: ${slideInRight} ${durations.normal} ${easings.easeOut};
+  animation-fill-mode: both;
+`
+
+export const QuizQuestionText = styled.h3<{ theme: Theme }>`
+  font-size: 18px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.textPrimary};
+  margin: 0 0 ${(props) => props.theme.spacing.md} 0;
+  line-height: 1.5;
+
+  @media (max-width: 768px) {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: ${(props) =>
+      props.theme.spacing.sm}; /* Tighter bottom margin */
+    /* Better mobile readability */
+  }
+`
+
+export const QuizOptionsGrid = styled.div<{ theme: Theme }>`
+  display: grid;
+  gap: ${(props) => props.theme.spacing.sm};
+  margin-top: ${(props) => props.theme.spacing.md};
+
+  @media (max-width: 768px) {
+    gap: ${(props) => props.theme.spacing.xs}; /* Tight gap between options */
+    margin-top: ${(props) => props.theme.spacing.sm}; /* Reduced top margin */
+    /* Better spacing for touch interfaces */
+  }
+`
+
+export const QuizOption = styled.label<{
+  $isSelected: boolean
+  $isCorrect?: boolean
+  $isIncorrect?: boolean
+  $showResults: boolean
+  theme: Theme
+}>`
+  display: flex;
+  align-items: center;
+  padding: ${(props) => props.theme.spacing.md}
+    ${(props) => props.theme.spacing.lg};
+  cursor: ${(props) => (props.$showResults ? 'default' : 'pointer')};
+  transition: ${(props) => props.theme.transitions.smooth};
+  ${neumorphicBase}
+
+  ${(props) =>
+    props.$isSelected &&
+    !props.$showResults &&
+    css`
+      box-shadow: ${props.theme.shadows.neuPressed};
+      background: ${props.theme.colors.base};
+    `}
+  
+  ${(props) =>
+    props.$showResults &&
+    props.$isCorrect &&
+    css`
+      background: rgba(76, 175, 80, 0.1);
+      box-shadow: ${props.theme.shadows.neuInset};
+      border: 2px solid rgba(76, 175, 80, 0.3);
+    `}
+  
+  ${(props) =>
+    props.$showResults &&
+    props.$isIncorrect &&
+    css`
+      background: rgba(244, 67, 54, 0.1);
+      box-shadow: ${props.theme.shadows.neuInset};
+      border: 2px solid rgba(244, 67, 54, 0.3);
+    `}
+  
+  &:hover:not(:disabled) {
+    ${(props) =>
+      !props.$showResults &&
+      css`
+        /* Removed hover effect to avoid confusion with selection */
+        cursor: pointer;
+      `}
+  }
+
+  input[type='radio'] {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    /* Simplified mobile design */
+    background: ${(props) => props.theme.colors.base};
+    box-shadow: none;
+    border: 2px solid ${(props) => props.theme.colors.borderSubtle};
+    border-radius: ${(props) => props.theme.radii.md};
+    padding: ${(props) => props.theme.spacing.sm}
+      ${(props) => props.theme.spacing.md}; /* More compact padding */
+    margin-bottom: 0; /* Remove margin, use grid gap instead */
+    min-height: 50px; /* Smaller but still good touch target */
+
+    ${(props) =>
+      props.$isSelected &&
+      !props.$showResults &&
+      css`
+        border-color: ${props.theme.colors.accent};
+        background: ${props.theme.colors.accentSubtle};
+      `}
+
+    ${(props) =>
+      props.$showResults &&
+      props.$isCorrect &&
+      css`
+        background: rgba(76, 175, 80, 0.15);
+        border-color: rgba(76, 175, 80, 0.5);
+      `}
+    
+    ${(props) =>
+      props.$showResults &&
+      props.$isIncorrect &&
+      css`
+        background: rgba(244, 67, 54, 0.15);
+        border-color: rgba(244, 67, 54, 0.5);
+      `}
+  }
+`
+
+export const QuizOptionLetter = styled.span<{ theme: Theme }>`
+  font-weight: 600;
+  margin-right: ${(props) => props.theme.spacing.sm};
+  color: ${(props) => props.theme.colors.accent};
+  font-size: 16px;
+`
+
+export const QuizOptionText = styled.span<{ theme: Theme }>`
+  flex: 1;
+  font-size: 15px;
+  color: ${(props) => props.theme.colors.textSecondary};
+  line-height: 1.4;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+`
+
+export const QuizResultIndicator = styled.span<{
+  $isCorrect: boolean
+  theme: Theme
+}>`
+  margin-left: auto;
+  font-size: 18px;
+  color: ${(props) =>
+    props.$isCorrect ? 'rgba(76, 175, 80, 0.8)' : 'rgba(244, 67, 54, 0.8)'};
+`
+
+export const QuizExplanation = styled.div<{ theme: Theme }>`
+  margin-top: ${(props) => props.theme.spacing.md};
+  padding: ${(props) => props.theme.spacing.md};
+  font-size: 14px;
+  color: ${(props) => props.theme.colors.textTertiary};
+  line-height: 1.5;
+  ${neumorphicInset}
+  animation: ${fadeIn} ${durations.fast} ${easings.easeOut};
+
+  @media (max-width: 768px) {
+    /* Simplified mobile styling */
+    background: ${(props) => props.theme.colors.base};
+    border: 1px solid ${(props) => props.theme.colors.borderSubtle};
+    border-radius: ${(props) => props.theme.radii.sm};
+    box-shadow: none;
+    padding: ${(props) => props.theme.spacing.sm}; /* Reduced padding */
+    margin-top: ${(props) => props.theme.spacing.sm}; /* Reduced margin */
+    font-size: 14px;
+    line-height: 1.5;
+  }
+`
+
+export const QuizActions = styled.div<{ theme: Theme }>`
+  display: flex;
+  gap: ${(props) => props.theme.spacing.md};
+  margin-top: ${(props) => props.theme.spacing.xl};
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: ${(props) => props.theme.spacing.md};
+    margin-top: ${(props) =>
+      props.theme.spacing.sm}; /* Much tighter top margin */
+    /* Ensure buttons are outside scrollable area */
+    flex-shrink: 0;
+  }
+`
+
+export const QuizActionButton = styled(BaseButton)<{
+  $variant?: 'primary' | 'secondary'
+  theme: Theme
+}>`
+  flex: 1;
+  padding: ${(props) => props.theme.spacing.md}
+    ${(props) => props.theme.spacing.lg};
+  font-size: 15px;
+  font-weight: 600;
+
+  ${(props) =>
+    props.$variant === 'primary' &&
+    css`
+      background: ${props.theme.colors.accent};
+      color: ${props.theme.colors.textPrimary};
+
+      &:hover {
+        background: ${props.theme.colors.accentHover};
+        box-shadow: ${props.theme.shadows.neuHover};
+      }
+    `}
+
+  ${(props) =>
+    props.$variant === 'secondary' &&
+    css`
+      color: ${props.theme.colors.textSecondary};
+    `}
+
+  @media (max-width: 768px) {
+    /* Larger touch targets for mobile */
+    padding: ${(props) => props.theme.spacing.lg};
+    font-size: 16px;
+    min-height: 50px;
+
+    /* Simplified styling */
+    ${(props) =>
+      props.$variant === 'primary' &&
+      css`
+        background: ${props.theme.colors.accent};
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+        &:hover {
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+      `}
+  }
+`
+
+export const QuizLoadingContainer = styled.div<{ theme: Theme }>`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${(props) => props.theme.spacing.xxl};
+  gap: ${(props) => props.theme.spacing.lg};
+  color: ${(props) => props.theme.colors.textSecondary};
+  text-align: center;
+  animation: ${fadeIn} ${durations.normal} ${easings.easeOut};
+`
+
+export const QuizProgressBar = styled.div<{ theme: Theme }>`
+  width: 100%;
+  height: 4px;
+  background: ${(props) => props.theme.colors.base};
+  border-radius: 2px;
+  margin-bottom: ${(props) => props.theme.spacing.lg};
+  ${neumorphicInset}
+  overflow: hidden;
+`
+
+export const QuizProgressFill = styled.div<{
+  $progress: number
+  theme: Theme
+}>`
+  height: 100%;
+  width: ${(props) => props.$progress}%;
+  background: ${(props) => props.theme.colors.accent};
+  transition: width 0.3s ease;
+`
+
+export const QuizQuestionNumber = styled.div<{ theme: Theme }>`
+  font-size: 14px;
+  font-weight: 600;
+  color: ${(props) => props.theme.colors.textTertiary};
+  text-align: center;
+  margin-bottom: ${(props) => props.theme.spacing.sm};
+`
+
+export const QuizScoreContainer = styled(BaseCard)<{ theme: Theme }>`
+  padding: ${(props) => props.theme.spacing.xl};
+  text-align: center;
+  animation: ${scaleIn} ${durations.normal} ${easings.spring};
+
+  @media (max-width: 768px) {
+    /* Flatten for mobile - remove card styling */
+    background: transparent;
+    box-shadow: none;
+    padding: ${(props) => props.theme.spacing.xs} 0; /* Minimal padding */
+    border-radius: 0;
+  }
+`
+
+export const QuizScoreTitle = styled.h2<{ theme: Theme }>`
+  font-size: 32px;
+  font-weight: 700;
+  color: ${(props) => props.theme.colors.accent};
+  margin: 0 0 ${(props) => props.theme.spacing.md} 0;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+    margin: 0 0 ${(props) => props.theme.spacing.xs} 0; /* Tight bottom margin */
+  }
+`
+
+export const QuizScoreText = styled.div<{ theme: Theme }>`
+  font-size: 48px;
+  font-weight: 800;
+  color: ${(props) => props.theme.colors.textPrimary};
+  margin: ${(props) => props.theme.spacing.lg} 0;
+
+  @media (max-width: 768px) {
+    font-size: 40px;
+    margin: ${(props) => props.theme.spacing.xs} 0; /* Much tighter margins */
+    /* Slightly smaller but still prominent on mobile */
+  }
+`
+
+export const QuizScoreSubtext = styled.p<{ theme: Theme }>`
+  font-size: 16px;
+  color: ${(props) => props.theme.colors.textSecondary};
+  margin: ${(props) => props.theme.spacing.md} 0;
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+    line-height: 1.5;
+    margin: ${(props) => props.theme.spacing.sm} 0; /* Tighter margins */
+    /* Better readability on mobile */
+  }
+`
+
+export const QuizNavigationDots = styled.div<{ theme: Theme }>`
+  display: flex;
+  justify-content: center;
+  gap: ${(props) => props.theme.spacing.xs};
+  margin-top: ${(props) => props.theme.spacing.md};
+`
+
+export const QuizNavigationDot = styled.button<{
+  $isActive: boolean
+  $isAnswered: boolean
+  theme: Theme
+}>`
+  width: 10px;
+  height: 10px;
+  border-radius: ${(props) => props.theme.radii.round};
+  border: none;
+  cursor: pointer;
+  transition: ${(props) => props.theme.transitions.smooth};
+  ${neumorphicBase}
+
+  ${(props) =>
+    props.$isActive &&
+    css`
+      background: ${props.theme.colors.accent};
+      transform: scale(1.2);
+    `}
+  
+  ${(props) =>
+    props.$isAnswered &&
+    !props.$isActive &&
+    css`
+      background: ${props.theme.colors.textTertiary};
+    `}
+  
+  &:hover {
+    transform: scale(1.1);
   }
 `

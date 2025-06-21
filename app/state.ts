@@ -6,6 +6,20 @@ export interface HistoryItem {
   conversationHistoryIndex: number // Position in conversation history when this query was made
 }
 
+// Quiz question interface
+export interface QuizQuestion {
+  id: number
+  question: string
+  options: {
+    A: string
+    B: string
+    C: string
+    D: string
+  }
+  correctAnswer: 'A' | 'B' | 'C' | 'D'
+  explanation?: string
+}
+
 // Consolidated state interface
 export interface AppState {
   inputText: string
@@ -23,13 +37,18 @@ export interface AppState {
   isModalVisible: boolean
   showSuggestedQuestions: boolean
   suggestedQuestions: string[]
-  // Typewriter animation state
   isStreaming: boolean
   streamBuffer: string
   displayedText: string
   isTypewriterDone: boolean
-  // Conciseness slider visibility
   isConcisenessSidebarVisible: boolean
+  // Quiz state
+  isQuizModalVisible: boolean
+  quizQuestions: QuizQuestion[]
+  userAnswers: Record<number, string>
+  showQuizResults: boolean
+  isGeneratingQuiz: boolean
+  currentQuestionIndex: number
 }
 
 // Action types with better type safety
@@ -65,7 +84,17 @@ export type AppAction =
     }
   | { type: 'LOAD_HISTORY_ENTRY'; payload: HistoryItem }
   | { type: 'RESET_QUERY_STATE' }
-  | { type: 'RESET_ALL_STATE' } // New action for complete reset
+  | { type: 'RESET_ALL_STATE' }
+  // Quiz actions
+  | { type: 'SET_QUIZ_MODAL_VISIBLE'; payload: boolean }
+  | { type: 'SET_QUIZ_QUESTIONS'; payload: QuizQuestion[] }
+  | { type: 'SET_USER_ANSWER'; payload: { questionId: number; answer: string } }
+  | { type: 'SHOW_QUIZ_RESULTS'; payload: boolean }
+  | { type: 'RESET_QUIZ' }
+  | { type: 'SET_GENERATING_QUIZ'; payload: boolean }
+  | { type: 'SET_CURRENT_QUESTION_INDEX'; payload: number }
+  | { type: 'NEXT_QUESTION' }
+  | { type: 'PREVIOUS_QUESTION' }
 
 // Function to shuffle array and pick random questions
 export function getRandomQuestions(
@@ -332,6 +361,79 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       }
     }
 
+    case 'SET_QUIZ_MODAL_VISIBLE': {
+      return {
+        ...state,
+        isQuizModalVisible: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'SET_QUIZ_QUESTIONS': {
+      return {
+        ...state,
+        quizQuestions: createSafeArray<QuizQuestion>(action.payload),
+      }
+    }
+
+    case 'SET_USER_ANSWER': {
+      const { questionId, answer } = action.payload
+      return {
+        ...state,
+        userAnswers: {
+          ...state.userAnswers,
+          [questionId]: answer,
+        },
+      }
+    }
+
+    case 'SHOW_QUIZ_RESULTS': {
+      return {
+        ...state,
+        showQuizResults: action.payload === true,
+      }
+    }
+
+    case 'RESET_QUIZ': {
+      return {
+        ...state,
+        userAnswers: {},
+        showQuizResults: false,
+        currentQuestionIndex: 0,
+      }
+    }
+
+    case 'SET_GENERATING_QUIZ': {
+      return {
+        ...state,
+        isGeneratingQuiz: createSafeBoolean(action.payload),
+      }
+    }
+
+    case 'SET_CURRENT_QUESTION_INDEX': {
+      return {
+        ...state,
+        currentQuestionIndex:
+          typeof action.payload === 'number' ? action.payload : 0,
+      }
+    }
+
+    case 'NEXT_QUESTION': {
+      return {
+        ...state,
+        currentQuestionIndex: Math.min(
+          state.currentQuestionIndex + 1,
+          state.quizQuestions.length - 1
+        ),
+      }
+    }
+
+    case 'PREVIOUS_QUESTION': {
+      return {
+        ...state,
+        currentQuestionIndex: Math.max(state.currentQuestionIndex - 1, 0),
+      }
+    }
+
     default: {
       // TypeScript will ensure this is never reached with proper typing
       console.warn('Unknown action type:', (action as any).type)
@@ -362,4 +464,10 @@ export const initialState: AppState = {
   displayedText: '',
   isTypewriterDone: false,
   isConcisenessSidebarVisible: true,
+  isQuizModalVisible: false,
+  quizQuestions: [],
+  userAnswers: {},
+  showQuizResults: false,
+  isGeneratingQuiz: false,
+  currentQuestionIndex: 0,
 }

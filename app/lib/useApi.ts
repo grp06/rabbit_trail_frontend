@@ -246,5 +246,40 @@ export function useApi(state: AppState, dispatch: React.Dispatch<AppAction>) {
     dispatch,
   ])
 
-  return { handleOpenAI, handleShuffle }
+  const handleGenerateQuiz = useCallback(async () => {
+    dispatch({ type: 'SET_GENERATING_QUIZ', payload: true })
+    dispatch({ type: 'SET_QUIZ_MODAL_VISIBLE', payload: true })
+    dispatch({ type: 'RESET_QUIZ' })
+
+    try {
+      const response = await fetch(API_ENDPOINTS.generateQuiz, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversation_history: conversationHistory,
+        }),
+      })
+
+      if (!response.ok) throw new Error('Network response was not ok')
+      const { questions } = await response.json()
+
+      if (questions && questions.length > 0) {
+        dispatch({ type: 'SET_QUIZ_QUESTIONS', payload: questions })
+      } else {
+        console.error('No quiz questions received')
+        dispatch({ type: 'SET_QUIZ_MODAL_VISIBLE', payload: false })
+      }
+    } catch (error) {
+      console.error('Error generating quiz:', error)
+      trackSearchError(
+        '/api/generate-quiz',
+        error instanceof Error ? error.message : 'Unknown error'
+      )
+      dispatch({ type: 'SET_QUIZ_MODAL_VISIBLE', payload: false })
+    } finally {
+      dispatch({ type: 'SET_GENERATING_QUIZ', payload: false })
+    }
+  }, [conversationHistory, trackSearchError, dispatch])
+
+  return { handleOpenAI, handleShuffle, handleGenerateQuiz }
 }

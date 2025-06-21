@@ -5,4 +5,5 @@ export const API_BASE_URL =
 export const API_ENDPOINTS = {
   openai: `${API_BASE_URL}/api/openai`,
   shuffleQuestions: `${API_BASE_URL}/api/shuffle-questions`,
+  generateQuiz: `${API_BASE_URL}/api/generate-quiz`,
 }

@@ -34,6 +34,7 @@ interface AppContextValue {
     isFollowUp?: boolean
   ) => Promise<void>
   handleShuffle: () => Promise<void>
+  handleGenerateQuiz: () => Promise<void>
 
   // UI actions with analytics
   handleInputChange: (value: string) => void
@@ -52,6 +53,13 @@ interface AppContextValue {
   // Modal actions
   handleCloseModal: (method?: 'button' | 'overlay' | 'get_started') => void
 
+  // Quiz actions
+  handleQuizAnswer: (questionId: number, answer: string) => void
+  handleRevealQuizResults: () => void
+  handleCloseQuiz: () => void
+  handleNextQuestion: () => void
+  handlePreviousQuestion: () => void
+
   // Analytics (exposed for custom tracking)
   analytics: ReturnType<typeof useAppAnalytics>
 }
@@ -65,7 +73,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [state, dispatch] = useReducer(appReducer, initialState)
   const analytics = useAppAnalytics()
-  const { handleOpenAI, handleShuffle } = useApi(state, dispatch)
+  const { handleOpenAI, handleShuffle, handleGenerateQuiz } = useApi(
+    state,
+    dispatch
+  )
 
   // Initialize suggested questions on mount
   useEffect(() => {
@@ -194,11 +205,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     await handleShuffle()
   }, [handleShuffle, analytics.ui])
 
+  // Quiz handlers
+  const handleQuizAnswer = useCallback((questionId: number, answer: string) => {
+    dispatch({ type: 'SET_USER_ANSWER', payload: { questionId, answer } })
+  }, [])
+
+  const handleRevealQuizResults = useCallback(() => {
+    dispatch({ type: 'SHOW_QUIZ_RESULTS', payload: true })
+  }, [])
+
+  const handleCloseQuiz = useCallback(() => {
+    dispatch({ type: 'SET_QUIZ_MODAL_VISIBLE', payload: false })
+    dispatch({ type: 'RESET_QUIZ' })
+  }, [])
+
+  const handleNextQuestion = useCallback(() => {
+    dispatch({ type: 'NEXT_QUESTION' })
+  }, [])
+
+  const handlePreviousQuestion = useCallback(() => {
+    dispatch({ type: 'PREVIOUS_QUESTION' })
+  }, [])
+
   const contextValue: AppContextValue = {
     state,
     dispatch,
     handleOpenAI,
     handleShuffle: enhancedHandleShuffle,
+    handleGenerateQuiz,
     handleInputChange,
     handleConcisenesChange,
     handleFollowUpClick,
@@ -210,6 +244,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     loadHistoryEntry,
     handleRevert,
     handleCloseModal,
+    handleQuizAnswer,
+    handleRevealQuizResults,
+    handleCloseQuiz,
+    handleNextQuestion,
+    handlePreviousQuestion,
     analytics,
   }
 
@@ -288,5 +327,24 @@ export const useQuestionsState = () => {
     suggestedQuestions,
     showSuggestedQuestions,
     explorableConcepts,
+  }
+}
+
+export const useQuizState = () => {
+  const {
+    isQuizModalVisible,
+    quizQuestions,
+    userAnswers,
+    showQuizResults,
+    isGeneratingQuiz,
+    currentQuestionIndex,
+  } = useAppState()
+  return {
+    isQuizModalVisible,
+    quizQuestions,
+    userAnswers,
+    showQuizResults,
+    isGeneratingQuiz,
+    currentQuestionIndex,
   }
 }
