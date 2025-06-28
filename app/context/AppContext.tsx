@@ -93,7 +93,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       dispatch({ type: 'SET_MODAL_VISIBLE', payload: true })
       analytics.modal.trackModalOpen()
     }
-  }, [analytics.modal])
+  }, [])
 
   // Enhanced action handlers with analytics
   const handleInputChange = useCallback((value: string) => {
