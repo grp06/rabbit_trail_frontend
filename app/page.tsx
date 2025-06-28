@@ -99,7 +99,7 @@ const GlobalStyle = createGlobalStyle`
 `
 
 // Separate components for better organization
-const SearchInput: React.FC = () => {
+const SearchInput: React.FC = React.memo(() => {
   const { state, handleInputChange, handleOpenAI } = useAppContext()
   const { inputText, isLoading } = state
 
@@ -128,9 +128,9 @@ const SearchInput: React.FC = () => {
       </form>
     </InputContainer>
   )
-}
+})
 
-const SuggestedQuestions: React.FC = () => {
+const SuggestedQuestions: React.FC = React.memo(() => {
   const { handleSuggestedQuestionClick } = useAppContext()
   const { suggestedQuestions, showSuggestedQuestions } = useQuestionsState()
   const { result, isLoading, currentQuery } = useSearchState()
@@ -152,9 +152,9 @@ const SuggestedQuestions: React.FC = () => {
       ))}
     </ButtonContainer>
   )
-}
+})
 
-const SearchResult: React.FC = () => {
+const SearchResult: React.FC = React.memo(() => {
   const { state, dispatch, handleArticleItemClick } = useAppContext()
   const {
     result,
@@ -254,9 +254,9 @@ const SearchResult: React.FC = () => {
       </Result>
     </>
   )
-}
+})
 
-const FollowUpQuestions: React.FC = () => {
+const FollowUpQuestions: React.FC = React.memo(() => {
   const { handleFollowUpClick, handleShuffle } = useAppContext()
   const { options } = useQuestionsState()
   const { isLoading, isStreaming } = useSearchState()
@@ -303,9 +303,9 @@ const FollowUpQuestions: React.FC = () => {
       </div>
     </>
   )
-}
+})
 
-const HistorySidebar: React.FC = () => {
+const HistorySidebar: React.FC = React.memo(() => {
   const { loadHistoryEntry, handleRevert, handleSidebarToggle } =
     useAppContext()
   const { historyEntries } = useHistoryState()
@@ -360,9 +360,9 @@ const HistorySidebar: React.FC = () => {
       </Sidebar>
     </>
   )
-}
+})
 
-const WelcomeModal: React.FC = () => {
+const WelcomeModal: React.FC = React.memo(() => {
   const { handleCloseModal } = useAppContext()
   const { isModalVisible } = useUIState()
 
@@ -405,9 +405,9 @@ const WelcomeModal: React.FC = () => {
       </ModalContainer>
     </ModalOverlay>
   )
-}
+})
 
-const QuizMe: React.FC = () => {
+const QuizMe: React.FC = React.memo(() => {
   const { handleGenerateQuiz } = useAppContext()
   const { historyEntries } = useHistoryState()
   const { isGeneratingQuiz } = useQuizState()
@@ -422,9 +422,9 @@ const QuizMe: React.FC = () => {
       Quiz Me
     </QuizButton>
   )
-}
+})
 
-const QuizModal: React.FC = () => {
+const QuizModal: React.FC = React.memo(() => {
   const {
     handleQuizAnswer,
     handleRevealQuizResults,
@@ -688,7 +688,7 @@ const QuizModal: React.FC = () => {
       </ModalContainer>
     </ModalOverlay>
   )
-}
+})
 
 export default function Home() {
   const { handleThemeToggle, handleConcisenesChange, handleSidebarToggle } =

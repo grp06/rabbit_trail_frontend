@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useMemo,
 } from 'react'
 import {
   appReducer,
@@ -106,7 +107,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       dispatch({ type: 'SET_CONCISENESS', payload: value })
       analytics.ui.trackConcisenesChange(oldValue, value)
     },
-    [state.conciseness, analytics.ui]
+    [state.conciseness]
   )
 
   const handleFollowUpClick = useCallback(
@@ -114,7 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       analytics.navigation.trackFollowUpClick(question, index)
       handleOpenAI(question, true, true)
     },
-    [handleOpenAI, analytics.navigation]
+    [handleOpenAI]
   )
 
   const handleSuggestedQuestionClick = useCallback(
@@ -122,7 +123,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       analytics.search.trackSearchStart(question, state.conciseness)
       handleOpenAI(question, false, false)
     },
-    [handleOpenAI, state.conciseness, analytics.search]
+    [handleOpenAI, state.conciseness]
   )
 
   const handleArticleItemClick = useCallback(
@@ -130,14 +131,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       analytics.navigation.trackConceptClick(concept)
       handleOpenAI(concept, true, true)
     },
-    [handleOpenAI, analytics.navigation]
+    [handleOpenAI]
   )
 
   const handleThemeToggle = useCallback(() => {
     const newTheme = state.isDarkMode ? 'light' : 'dark'
     analytics.ui.trackThemeToggle(newTheme)
     dispatch({ type: 'TOGGLE_THEME' })
-  }, [state.isDarkMode, analytics.ui])
+  }, [state.isDarkMode])
 
   const handleSidebarToggle = useCallback(() => {
     dispatch({
@@ -158,7 +159,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       analytics.navigation.trackHistoryClick(entry.queryText)
       dispatch({ type: 'LOAD_HISTORY_ENTRY', payload: entry })
     },
-    [analytics.navigation]
+    []
   )
 
   const handleRevert = useCallback(
@@ -186,7 +187,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       state.conversationHistory,
       state.historyEntries,
       handleOpenAI,
-      analytics.navigation,
     ]
   )
 
@@ -196,14 +196,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem('hasVisitedShallowResearch', 'true')
       dispatch({ type: 'SET_MODAL_VISIBLE', payload: false })
     },
-    [analytics.modal]
+    []
   )
 
   // Enhanced shuffle with analytics
   const enhancedHandleShuffle = useCallback(async () => {
     analytics.ui.trackShuffle()
     await handleShuffle()
-  }, [handleShuffle, analytics.ui])
+  }, [handleShuffle])
 
   // Quiz handlers
   const handleQuizAnswer = useCallback((questionId: number, answer: string) => {
@@ -227,30 +227,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     dispatch({ type: 'PREVIOUS_QUESTION' })
   }, [])
 
-  const contextValue: AppContextValue = {
-    state,
-    dispatch,
-    handleOpenAI,
-    handleShuffle: enhancedHandleShuffle,
-    handleGenerateQuiz,
-    handleInputChange,
-    handleConcisenesChange,
-    handleFollowUpClick,
-    handleSuggestedQuestionClick,
-    handleArticleItemClick,
-    handleThemeToggle,
-    handleSidebarToggle,
-    handleConcisenessSidebarToggle,
-    loadHistoryEntry,
-    handleRevert,
-    handleCloseModal,
-    handleQuizAnswer,
-    handleRevealQuizResults,
-    handleCloseQuiz,
-    handleNextQuestion,
-    handlePreviousQuestion,
-    analytics,
-  }
+  const contextValue = useMemo(
+    () => ({
+      state,
+      dispatch,
+      handleOpenAI,
+      handleShuffle: enhancedHandleShuffle,
+      handleGenerateQuiz,
+      handleInputChange,
+      handleConcisenesChange,
+      handleFollowUpClick,
+      handleSuggestedQuestionClick,
+      handleArticleItemClick,
+      handleThemeToggle,
+      handleSidebarToggle,
+      handleConcisenessSidebarToggle,
+      loadHistoryEntry,
+      handleRevert,
+      handleCloseModal,
+      handleQuizAnswer,
+      handleRevealQuizResults,
+      handleCloseQuiz,
+      handleNextQuestion,
+      handlePreviousQuestion,
+      analytics,
+    }),
+    [
+      state,
+      dispatch,
+      handleOpenAI,
+      enhancedHandleShuffle,
+      handleGenerateQuiz,
+      handleInputChange,
+      handleConcisenesChange,
+      handleFollowUpClick,
+      handleSuggestedQuestionClick,
+      handleArticleItemClick,
+      handleThemeToggle,
+      handleSidebarToggle,
+      handleConcisenessSidebarToggle,
+      loadHistoryEntry,
+      handleRevert,
+      handleCloseModal,
+      handleQuizAnswer,
+      handleRevealQuizResults,
+      handleCloseQuiz,
+      handleNextQuestion,
+      handlePreviousQuestion,
+      analytics,
+    ]
+  )
 
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>
