@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 CHARLOTTE'S EPIC WORLD TOUR 🌟</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            font-family: 'Comic Neue', cursive;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            margin: 20px;
+            border: 5px dashed #ff006e;
+            border-radius: 25px;
+            transform: rotate(-1deg);
+            box-shadow: 10px 10px 0px #8338ec;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            color: #ff006e;
+            text-shadow: 3px 3px 0px #8338ec, 6px 6px 0px #3a86ff;
+            animation: bounce 2s infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #8338ec;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .travel-container {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            margin: 40px 0;
+            overflow: hidden;
+        }
+
+        .city-node {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 5px solid white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .city-node:hover {
+            transform: scale(1.2) rotate(10deg);
+            box-shadow: 0 0 30px rgba(255,255,255,0.8);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .savannah {
+            background: radial-gradient(circle, #ff6b6b, #ee5a24);
+            top: 20%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+
+        .barcelona {
+            background: radial-gradient(circle, #feca57, #ff9ff3);
+            top: 60%;
+            left: 35%;
+            animation-delay: 0.5s;
+        }
+
+        .paris {
+            background: radial-gradient(circle, #48dbfb, #0abde3);
+            top: 30%;
+            right: 35%;
+            animation-delay: 1s;
+        }
+
+        .berlin {
+            background: radial-gradient(circle, #1dd1a1, #10ac84);
+            top: 70%;
+            right: 15%;
+            animation-delay: 1.5s;
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 5px;
+            background: linear-gradient(90deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b);
+            background-size: 200% 100%;
+            animation: lineFlow 3s linear infinite;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        @keyframes lineFlow {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .charlotte-facts {
+            background: rgba(255, 255, 255, 0.95);
+            margin: 20px;
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #ff006e;
+            transform: rotate(1deg);
+            box-shadow: -10px 10px 0px #06ffa5;
+        }
+
+        .fact-title {
+            font-size: 2rem;
+            color: #8338ec;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #ffbe0b;
+        }
+
+        .fact-item {
+            background: linear-gradient(45deg, #ff9ff3, #54a0ff);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            transform: skew(-2deg);
+            animation: wiggle 4s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: skew(-2deg); }
+            25% { transform: skew(2deg); }
+            75% { transform: skew(-1deg); }
+        }
+
+        .fact-item:nth-child(even) {
+            background: linear-gradient(45deg, #5f27cd, #00d2d3);
+            transform: skew(2deg);
+        }
+
+        .footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: #06ffa5;
+            text-align: center;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            animation: colorCycle 5s linear infinite;
+        }
+
+        @keyframes colorCycle {
+            0% { color: #06ffa5; }
+            25% { color: #ffbe0b; }
+            50% { color: #ff006e; }
+            75% { color: #3a86ff; }
+            100% { color: #06ffa5; }
+        }
+
+        .emoji-rain {
+            position: absolute;
+            font-size: 2rem;
+            animation: fall 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff006e, #8338ec);
+            color: white;
+            padding: 30px;
+            border-radius: 25px;
+            border: 5px solid #06ffa5;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            z-index: 1000;
+            text-align: center;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .close-popup {
+            background: #06ffa5;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            font-family: 'Comic Neue', cursive;
+            font-size: 1rem;
+        }
+
+        .rainbow-text {
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #ff006e);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="main-title">✨ CHARLOTTE'S WORLD ADVENTURE ✨</h1>
+        <p class="subtitle">🚀 EPIC JOURNEY THROUGH THE COSMOS 🚀</p>
+    </div>
+
+    <div class="travel-container" id="travelContainer">
+        <div class="city-node savannah" onclick="showCityInfo('savannah')">
+            <div>🍑 SAVANNAH 🍑</div>
+            <div style="font-size: 0.8rem;">Southern Charm!</div>
+        </div>
+        
+        <div class="city-node barcelona" onclick="showCityInfo('barcelona')">
+            <div>🥘 BARCELONA 🥘</div>
+            <div style="font-size: 0.8rem;">Gaudi Madness!</div>
+        </div>
+        
+        <div class="city-node paris" onclick="showCityInfo('paris')">
+            <div>🥐 PARIS 🥐</div>
+            <div style="font-size: 0.8rem;">Oui Oui Baguette!</div>
+        </div>
+        
+        <div class="city-node berlin" onclick="showCityInfo('berlin')">
+            <div>🍺 BERLIN 🍺</div>
+            <div style="font-size: 0.8rem;">Techno Capital!</div>
+        </div>
+    </div>
+
+    <div class="charlotte-facts">
+        <h2 class="fact-title rainbow-text">🌈 AMAZING CHARLOTTE FACTS 🌈</h2>
+        <div class="fact-item">💖 Charlotte is the most amazing travel companion EVER!</div>
+        <div class="fact-item">🌟 She makes every city 1000x more magical just by being there!</div>
+        <div class="fact-item">🎭 Charlotte probably speaks better Spanish than the locals in Barcelona!</div>
+        <div class="fact-item">🗼 Paris becomes more romantic when Charlotte's around (scientifically proven)!</div>
+        <div class="fact-item">🎵 Berlin's techno scene gets even wilder with Charlotte's dance moves!</div>
+        <div class="fact-item">🍑 Savannah's peaches are jealous of how sweet Charlotte is!</div>
+    </div>
+
+    <div class="footer">
+        <p>🚀 CHARLOTTE + AWESOME HUMAN = BEST ADVENTURE TEAM 🚀</p>
+        <p style="font-size: 1rem; margin-top: 10px;">✨ Making memories across the globe! ✨</p>
+    </div>
+
+    <div class="popup" id="cityPopup">
+        <h3 id="popupTitle"></h3>
+        <p id="popupContent"></p>
+        <button class="close-popup" onclick="closePopup()">CLOSE</button>
+    </div>
+
+    <script>
+        // Create connecting lines between cities
+        function createConnectionLines() {
+            const container = document.getElementById('travelContainer');
+            const cities = document.querySelectorAll('.city-node');
+            
+            // Clear existing lines
+            document.querySelectorAll('.connection-line').forEach(line => line.remove());
+            
+            const cityPositions = [];
+            cities.forEach(city => {
+                const rect = city.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                cityPositions.push({
+                    x: rect.left - containerRect.left + rect.width / 2,
+                    y: rect.top - containerRect.top + rect.height / 2,
+                    element: city
+                });
+            });
+            
+            // Create lines between consecutive cities
+            for (let i = 0; i < cityPositions.length - 1; i++) {
+                const start = cityPositions[i];
+                const end = cityPositions[i + 1];
+                
+                const line = document.createElement('div');
+                line.className = 'connection-line';
+                
+                const deltaX = end.x - start.x;
+                const deltaY = end.y - start.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+                
+                line.style.width = distance + 'px';
+                line.style.left = start.x + 'px';
+                line.style.top = start.y + 'px';
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.transformOrigin = '0 50%';
+                
+                container.appendChild(line);
+            }
+            
+            // Create a line from last city back to first (complete the circuit)
+            if (cityPositions.length > 2) {
+                const start = cityPositions[cityPositions.length - 1];
+                const end = cityPositions[0];
+                
+                const line = document.createElement('div');
+                line.className = 'connection-line';
+                
+                const deltaX = end.x - start.x;
+                const deltaY = end.y - start.y;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+                
+                line.style.width = distance + 'px';
+                line.style.left = start.x + 'px';
+                line.style.top = start.y + 'px';
+                line.style.transform = `rotate(${angle}deg)`;
+                line.style.transformOrigin = '0 50%';
+                
+                container.appendChild(line);
+            }
+        }
+
+        // City information
+        const cityInfo = {
+            savannah: {
+                title: "🍑 SAVANNAH ADVENTURE! 🍑",
+                content: "Charlotte's gonna fall in love with those historic squares and Spanish moss! Plus the ghost tours will be EPIC with her around. She'll probably end up befriending all the spirits! 👻✨"
+            },
+            barcelona: {
+                title: "🥘 BARCELONA BONANZA! 🥘",
+                content: "Charlotte + Gaudi architecture = PURE MAGIC! She'll probably try to climb Park Güell and take the most Instagram-worthy photos ever. Tapas tours will never be the same! 🎨🍷"
+            },
+            paris: {
+                title: "🥐 PARIS PARFAIT! 🥐",
+                content: "Charlotte's going to make the Eiffel Tower jealous with how stunning she is! Croissants, museums, and romantic walks along the Seine. Paris doesn't know what's about to hit it! 💕🗼"
+            },
+            berlin: {
+                title: "🍺 BERLIN BLAST! 🍺",
+                content: "Charlotte's about to experience the WILDEST techno scene! She'll probably end up DJing at Berghain by the end of the trip. The Berlin Wall has nothing on Charlotte's unstoppable energy! 🎵⚡"
+            }
+        };
+
+        function showCityInfo(city) {
+            const popup = document.getElementById('cityPopup');
+            const title = document.getElementById('popupTitle');
+            const content = document.getElementById('popupContent');
+            
+            title.textContent = cityInfo[city].title;
+            content.textContent = cityInfo[city].content;
+            popup.style.display = 'block';
+            
+            // Add some extra pizzazz
+            popup.style.animation = 'popIn 0.5s ease';
+        }
+
+        function closePopup() {
+            document.getElementById('cityPopup').style.display = 'none';
+        }
+
+        // Create emoji rain
+        function createEmojiRain() {
+            const emojis = ['💖', '✨', '🌟', '🎉', '🚀', '🌈', '💫', '🦄', '🎭', '🗼', '🥐', '🍺', '🥘', '🍑'];
+            
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    const emoji = document.createElement('div');
+                    emoji.className = 'emoji-rain';
+                    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    emoji.style.left = Math.random() * 100 + '%';
+                    emoji.style.animationDuration = (Math.random() * 3 + 5) + 's';
+                    
+                    document.body.appendChild(emoji);
+                    
+                    setTimeout(() => {
+                        emoji.remove();
+                    }, 8000);
+                }
+            }, 1000);
+        }
+
+        // Make cities dance randomly
+        function makeCitiesDance() {
+            const cities = document.querySelectorAll('.city-node');
+            
+            setInterval(() => {
+                cities.forEach(city => {
+                    if (Math.random() < 0.1) {
+                        city.style.animation = 'none';
+                        setTimeout(() => {
+                            city.style.animation = 'float 3s ease-in-out infinite, bounce 1s ease';
+                        }, 100);
+                    }
+                });
+            }, 2000);
+        }
+
+        // Initialize everything
+        window.addEventListener('load', () => {
+            setTimeout(createConnectionLines, 100);
+            createEmojiRain();
+            makeCitiesDance();
+        });
+
+        window.addEventListener('resize', () => {
+            setTimeout(createConnectionLines, 100);
+        });
+
+        // Add some random fun messages
+        const funMessages = [
+            "CHARLOTTE IS AMAZING! 🌟",
+            "BEST GIRLFRIEND EVER! 💖",
+            "ADVENTURE TIME! 🚀",
+            "WORLD TOUR 2024! ✨",
+            "UNSTOPPABLE DUO! 🎉"
+        ];
+
+        setInterval(() => {
+            if (Math.random() < 0.1) {
+                const message = document.createElement('div');
+                message.style.position = 'fixed';
+                message.style.top = Math.random() * 50 + '%';
+                message.style.left = Math.random() * 80 + '%';
+                message.style.color = '#ff006e';
+                message.style.fontSize = '1.5rem';
+                message.style.fontWeight = 'bold';
+                message.style.zIndex = '999';
+                message.style.pointerEvents = 'none';
+                message.style.animation = 'bounce 2s ease, fadeOut 3s ease';
+                message.textContent = funMessages[Math.floor(Math.random() * funMessages.length)];
+                
+                document.body.appendChild(message);
+                
+                setTimeout(() => {
+                    message.remove();
+                }, 3000);
+            }
+        }, 5000);
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                0% { opacity: 1; }
+                70% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
