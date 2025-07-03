@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faShuffle,
 } from '@fortawesome/free-solid-svg-icons'
+import Breadcrumbs from './components/Breadcrumbs'
 
 import {
   AppContainer,
@@ -44,6 +45,12 @@ interface HistoryItem {
   isExpanded: boolean
 }
 
+interface BreadcrumbItem {
+  id: string
+  label: string
+  phase: 'explore' | 'discover' | 'deep-dive' | 'synthesize'
+}
+
 export default function Home() {
   const [inputText, setInputText] = useState('')
   const [result, setResult] = useState('')
@@ -60,6 +67,16 @@ export default function Home() {
     'short'
   )
   const [isDragging, setIsDragging] = useState(false)
+  const [breadcrumbItems, setBreadcrumbItems] = useState<BreadcrumbItem[]>([])
+  const [currentBreadcrumbIndex, setCurrentBreadcrumbIndex] = useState(-1)
+
+  // Function to determine the phase based on the journey depth
+  const determinePhase = (index: number): 'explore' | 'discover' | 'deep-dive' | 'synthesize' => {
+    if (index === 0) return 'explore'
+    if (index <= 2) return 'discover'
+    if (index <= 4) return 'deep-dive'
+    return 'synthesize'
+  }
 
   // Rest of the existing component logic
   const handleOpenAI = async (
@@ -79,6 +96,16 @@ export default function Home() {
       setHistoryEntries([newHistoryEntry, ...historyEntries])
       setIsSidebarVisible(true)
     }
+
+    // Add breadcrumb for the new query
+    const newBreadcrumb: BreadcrumbItem = {
+      id: `breadcrumb-${Date.now()}`,
+      label: message.length > 30 ? message.substring(0, 30) + '...' : message,
+      phase: determinePhase(breadcrumbItems.length)
+    }
+    
+    setBreadcrumbItems(prev => [...prev, newBreadcrumb])
+    setCurrentBreadcrumbIndex(breadcrumbItems.length)
 
     setCurrentQuery(message)
     setIsLoading(true)
@@ -326,6 +353,14 @@ export default function Home() {
     }
   }
 
+  const handleBreadcrumbClick = (index: number) => {
+    if (index < historyEntries.length) {
+      const targetEntry = historyEntries[historyEntries.length - 1 - index]
+      loadHistoryEntry(targetEntry)
+      setCurrentBreadcrumbIndex(index)
+    }
+  }
+
   return (
     <AppContainer>
       <NavigationHeader>
@@ -367,6 +402,12 @@ export default function Home() {
           </SliderLabel>
         </div>
       </ConcisenessSidebar>
+
+      <Breadcrumbs 
+        items={breadcrumbItems}
+        currentIndex={currentBreadcrumbIndex}
+        onItemClick={handleBreadcrumbClick}
+      />
 
       <Sidebar $isVisible={isSidebarVisible}>
         {/* History entries */}
